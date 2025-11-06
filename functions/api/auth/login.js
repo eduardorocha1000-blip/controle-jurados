@@ -50,15 +50,21 @@ export async function onRequestPost(context) {
         }
         
         // Buscar usuário no banco
+        console.log('Buscando usuário no banco:', email);
         let usuario;
         try {
-            usuario = await env.DB.prepare(
+            const result = await env.DB.prepare(
                 'SELECT * FROM usuarios WHERE email = ?'
             ).bind(email).first();
+            
+            usuario = result;
+            console.log('Resultado da consulta:', usuario ? 'Usuário encontrado' : 'Usuário não encontrado');
         } catch (dbError) {
             console.error('Erro ao consultar banco:', dbError);
+            console.error('Erro detalhado:', dbError.message, dbError.stack);
             return new Response(JSON.stringify({ 
-                error: 'Erro ao acessar banco de dados. Verifique se o schema foi criado corretamente.' 
+                error: 'Erro ao acessar banco de dados. Verifique se o schema foi criado corretamente.',
+                details: dbError.message
             }), {
                 status: 500,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -66,6 +72,7 @@ export async function onRequestPost(context) {
         }
         
         if (!usuario) {
+            console.log('Usuário não encontrado para email:', email);
             return new Response(JSON.stringify({ error: 'Email ou senha inválidos' }), {
                 status: 401,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -87,10 +94,19 @@ export async function onRequestPost(context) {
         
         // Gerar token JWT (simplificado - em produção use uma biblioteca JWT)
         // Por enquanto, vamos usar um token simples baseado em timestamp
-        const token = await gerarToken(usuario, env);
+        console.log('Usuário encontrado:', { id: usuario.id, email: usuario.email });
+        
+        let token;
+        try {
+            token = await gerarToken(usuario, env);
+            console.log('Token gerado com sucesso');
+        } catch (tokenError) {
+            console.error('Erro ao gerar token:', tokenError);
+            throw new Error('Erro ao gerar token de autenticação');
+        }
         
         // Retornar token e dados do usuário
-        return new Response(JSON.stringify({
+        const responseData = {
             token,
             user: {
                 id: usuario.id,
@@ -98,7 +114,11 @@ export async function onRequestPost(context) {
                 email: usuario.email,
                 perfil: usuario.perfil
             }
-        }), {
+        };
+        
+        console.log('Retornando resposta de sucesso');
+        
+        return new Response(JSON.stringify(responseData), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
     } catch (error) {
@@ -138,7 +158,19 @@ async function gerarToken(usuario, env) {
     
     // TODO: Implementar JWT real
     // Por enquanto, retornar um token base64 simples
-    const tokenData = btoa(JSON.stringify(payload));
-    return tokenData;
+    // btoa pode não estar disponível no Cloudflare Workers, usar alternativa
+    try {
+        const jsonString = JSON.stringify(payload);
+        // Usar TextEncoder/TextDecoder ou método compatível com Workers
+        const tokenData = btoa ? btoa(jsonString) : Buffer.from(jsonString).toString('base64');
+        return tokenData;
+    } catch (e) {
+        // Fallback: usar método manual de base64
+        const jsonString = JSON.stringify(payload);
+        const base64 = Buffer ? Buffer.from(jsonString).toString('base64') : 
+            btoa ? btoa(jsonString) : 
+            jsonString; // Se nada funcionar, retornar o JSON direto
+        return base64;
+    }
 }
 

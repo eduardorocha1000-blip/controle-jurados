@@ -43,24 +43,14 @@ async function carregarInstituicoes() {
                 window.location.href = '/index.html';
                 return;
             }
-            
-            // Tentar obter mensagem de erro detalhada
-            let errorMessage = 'Erro ao carregar instituições';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorData.details || errorMessage;
-            } catch (e) {
-                errorMessage = `Erro ${response.status}: ${response.statusText}`;
-            }
-            throw new Error(errorMessage);
+            throw new Error('Erro ao carregar instituições');
         }
         
         const instituicoes = await response.json();
         exibirInstituicoes(instituicoes);
     } catch (error) {
         console.error('Erro:', error);
-        console.error('Detalhes:', error.message);
-        mostrarErro(error.message || 'Erro ao carregar instituições. Tente novamente.');
+        mostrarErro('Erro ao carregar instituições. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }

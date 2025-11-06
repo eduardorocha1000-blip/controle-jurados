@@ -13,7 +13,7 @@ export async function onRequestGet(context) {
         const edital = await env.DB.prepare(`
             SELECT 
                 e.*,
-                j.nome_completo as juiz_nome
+                j.nome as juiz_nome
             FROM editais e
             LEFT JOIN juizes j ON e.juiz_id = j.id
             WHERE e.id = ?

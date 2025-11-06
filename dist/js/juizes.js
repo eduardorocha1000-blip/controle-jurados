@@ -47,24 +47,14 @@ async function carregarJuizes() {
                 window.location.href = '/index.html';
                 return;
             }
-            
-            // Tentar obter mensagem de erro detalhada
-            let errorMessage = 'Erro ao carregar juízes';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorData.details || errorMessage;
-            } catch (e) {
-                errorMessage = `Erro ${response.status}: ${response.statusText}`;
-            }
-            throw new Error(errorMessage);
+            throw new Error('Erro ao carregar juízes');
         }
         
         const juizes = await response.json();
         exibirJuizes(juizes);
     } catch (error) {
         console.error('Erro:', error);
-        console.error('Detalhes:', error.message);
-        mostrarErro(error.message || 'Erro ao carregar juízes. Tente novamente.');
+        mostrarErro('Erro ao carregar juízes. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }

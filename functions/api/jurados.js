@@ -56,74 +56,45 @@ export async function onRequest(context) {
 
 // Listar jurados com filtros
 async function listarJurados(request, env, corsHeaders) {
-    try {
-        // Verificar se o banco está disponível
-        if (!env.DB) {
-            return new Response(JSON.stringify({ 
-                error: 'Banco de dados não configurado',
-                details: 'Configure o binding DB no Cloudflare Pages'
-            }), {
-                status: 500,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-        }
-        
-        const url = new URL(request.url);
-        const status = url.searchParams.get('status');
-        const instituicao_id = url.searchParams.get('instituicao_id');
-        const busca = url.searchParams.get('busca');
-        
-        let query = `
-            SELECT 
-                j.*,
-                i.nome as instituicao_nome
-            FROM jurados j
-            LEFT JOIN instituicoes i ON j.instituicao_id = i.id
-            WHERE 1=1
-        `;
-        
-        const params = [];
-        
-        if (status) {
-            query += ' AND j.status = ?';
-            params.push(status);
-        }
-        
-        if (instituicao_id) {
-            query += ' AND j.instituicao_id = ?';
-            params.push(instituicao_id);
-        }
-        
-        if (busca) {
-            query += ' AND (j.nome_completo LIKE ? OR j.cpf LIKE ? OR j.profissao LIKE ? OR j.email LIKE ?)';
-            const buscaParam = `%${busca}%`;
-            params.push(buscaParam, buscaParam, buscaParam, buscaParam);
-        }
-        
-        query += ' ORDER BY j.nome_completo';
-        
-        console.log('Executando query:', query);
-        console.log('Parâmetros:', params);
-        
-        const result = await env.DB.prepare(query).bind(...params).all();
-        
-        console.log('Resultado:', result.results?.length || 0, 'jurados encontrados');
-        
-        return new Response(JSON.stringify(result.results || []), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-    } catch (error) {
-        console.error('Erro ao listar jurados:', error);
-        console.error('Stack:', error.stack);
-        return new Response(JSON.stringify({ 
-            error: 'Erro ao buscar jurados no banco de dados',
-            details: error.message,
-            type: error.name
-        }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    const instituicao_id = url.searchParams.get('instituicao_id');
+    const busca = url.searchParams.get('busca');
+    
+    let query = `
+        SELECT 
+            j.*,
+            i.nome as instituicao_nome
+        FROM jurados j
+        LEFT JOIN instituicoes i ON j.instituicao_id = i.id
+        WHERE 1=1
+    `;
+    
+    const params = [];
+    
+    if (status) {
+        query += ' AND j.status = ?';
+        params.push(status);
     }
+    
+    if (instituicao_id) {
+        query += ' AND j.instituicao_id = ?';
+        params.push(instituicao_id);
+    }
+    
+    if (busca) {
+        query += ' AND (j.nome_completo LIKE ? OR j.cpf LIKE ? OR j.profissao LIKE ? OR j.email LIKE ?)';
+        const buscaParam = `%${busca}%`;
+        params.push(buscaParam, buscaParam, buscaParam, buscaParam);
+    }
+    
+    query += ' ORDER BY j.nome_completo';
+    
+    const result = await env.DB.prepare(query).bind(...params).all();
+    
+    return new Response(JSON.stringify(result.results || []), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
 }
 
 // Criar novo jurado

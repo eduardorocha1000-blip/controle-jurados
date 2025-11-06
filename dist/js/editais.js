@@ -27,7 +27,7 @@ async function carregarEditais() {
         const ano = document.getElementById('ano')?.value;
         const status = document.getElementById('status')?.value;
         
-        if (ano) params.append('ano_referencia', ano);
+        if (ano) params.append('ano', ano);
         if (status) params.append('status', status);
         
         if (params.toString()) {
@@ -45,24 +45,14 @@ async function carregarEditais() {
                 window.location.href = '/index.html';
                 return;
             }
-            
-            // Tentar obter mensagem de erro detalhada
-            let errorMessage = 'Erro ao carregar editais';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorData.details || errorMessage;
-            } catch (e) {
-                errorMessage = `Erro ${response.status}: ${response.statusText}`;
-            }
-            throw new Error(errorMessage);
+            throw new Error('Erro ao carregar editais');
         }
         
         const editais = await response.json();
         exibirEditais(editais);
     } catch (error) {
         console.error('Erro:', error);
-        console.error('Detalhes:', error.message);
-        mostrarErro(error.message || 'Erro ao carregar editais. Tente novamente.');
+        mostrarErro('Erro ao carregar editais. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }
@@ -92,8 +82,8 @@ function exibirEditais(editais) {
         
         // Formatar data
         let dataPublicacao = '-';
-        if (edital.data_publicacao_real || edital.data_publicacao_prevista) {
-            const data = new Date(edital.data_publicacao_real || edital.data_publicacao_prevista);
+        if (edital.data_publicacao) {
+            const data = new Date(edital.data_publicacao);
             dataPublicacao = data.toLocaleDateString('pt-BR');
         }
         
@@ -106,7 +96,7 @@ function exibirEditais(editais) {
         
         tr.innerHTML = `
             <td>${edital.numero || '-'}</td>
-            <td>${edital.ano_referencia || '-'}</td>
+            <td>${edital.ano || '-'}</td>
             <td>${dataPublicacao}</td>
             <td>${escapeHtml(edital.juiz_nome || '-')}</td>
             <td class="text-center">

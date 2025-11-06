@@ -285,7 +285,6 @@ function mostrarLoading(mostrar) {
 
 // Mostrar erro
 function mostrarErro(mensagem) {
-    // Implementar exibição de erro (toast, alert, etc.)
     alert(mensagem);
 }
 
@@ -303,8 +302,5 @@ function verificarAutenticacao() {
         window.location.href = '/index.html';
         return;
     }
-    
-    // Verificar se o token é válido (opcional)
-    // Você pode fazer uma chamada à API para validar
 }
 

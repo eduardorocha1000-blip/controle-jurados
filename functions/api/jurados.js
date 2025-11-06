@@ -208,7 +208,6 @@ async function atualizarJurado(id, request, env, corsHeaders) {
         updates.push('status = ?');
         values.push(data.status);
     }
-    // Adicionar outros campos conforme necessário...
     
     if (updates.length === 0) {
         return new Response(JSON.stringify({ error: 'Nenhum campo para atualizar' }), {

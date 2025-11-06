@@ -1,3 +1,0 @@
-// Arquivo movido - usar functions/api/auth/login.js em vez disso
-// No Cloudflare Pages Functions, /api/auth/login mapeia para functions/api/auth/login.js
-

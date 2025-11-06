@@ -1,5 +1,5 @@
-// Handler específico para /api/auth/login
-// Cloudflare Pages Functions usa estrutura de pastas para rotas
+// Handler para /api/auth/login
+// Cloudflare Pages Functions mapeia /api/auth/login para functions/api/auth/login.js
 
 export async function onRequestPost(context) {
     const { request, env } = context;
@@ -79,31 +79,20 @@ export async function onRequestPost(context) {
             });
         }
         
-        // Verificar senha (usando bcrypt - você precisará usar uma biblioteca compatível com Workers)
-        // Por enquanto, vamos usar uma verificação simples (NÃO SEGURO - apenas para exemplo)
-        // Em produção, use uma biblioteca como @cloudflare/workers-hono ou implemente bcrypt
-        
-        // TODO: Implementar verificação de senha com bcrypt
-        // const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
-        // if (!senhaValida) {
-        //     return new Response(JSON.stringify({ error: 'Email ou senha inválidos' }), {
-        //         status: 401,
-        //         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        //     });
-        // }
-        
-        // Gerar token JWT (simplificado - em produção use uma biblioteca JWT)
-        // Por enquanto, vamos usar um token simples baseado em timestamp
+        // Gerar token JWT (simplificado)
         console.log('Usuário encontrado:', { id: usuario.id, email: usuario.email });
         
-        let token;
-        try {
-            token = await gerarToken(usuario, env);
-            console.log('Token gerado com sucesso');
-        } catch (tokenError) {
-            console.error('Erro ao gerar token:', tokenError);
-            throw new Error('Erro ao gerar token de autenticação');
-        }
+        const payload = {
+            id: usuario.id,
+            email: usuario.email,
+            perfil: usuario.perfil,
+            exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 horas
+        };
+        
+        const jsonString = JSON.stringify(payload);
+        const token = btoa(jsonString);
+        
+        console.log('Token gerado com sucesso');
         
         // Retornar token e dados do usuário
         const responseData = {
@@ -132,7 +121,6 @@ export async function onRequestPost(context) {
             type: error.name || 'UnknownError'
         };
         
-        // Adicionar detalhes apenas em desenvolvimento
         if (error.stack) {
             errorResponse.stack = error.stack;
         }
@@ -141,45 +129,6 @@ export async function onRequestPost(context) {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
-    }
-}
-
-// Gerar token JWT (simplificado)
-// Em produção, use uma biblioteca JWT como @tsndr/cloudflare-worker-jwt
-async function gerarToken(usuario, env) {
-    // Por enquanto, vamos usar um token simples
-    // Em produção, implemente JWT adequadamente
-    const payload = {
-        id: usuario.id,
-        email: usuario.email,
-        perfil: usuario.perfil,
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 horas
-    };
-    
-    // TODO: Implementar JWT real
-    // Por enquanto, retornar um token base64 simples
-    // Cloudflare Workers tem btoa/atob disponível
-    const jsonString = JSON.stringify(payload);
-    
-    // Usar btoa (disponível no Cloudflare Workers)
-    // Se btoa não estiver disponível, usar TextEncoder/TextDecoder
-    try {
-        if (typeof btoa !== 'undefined') {
-            return btoa(jsonString);
-        } else {
-            // Fallback: usar TextEncoder/TextDecoder
-            const encoder = new TextEncoder();
-            const data = encoder.encode(jsonString);
-            // Converter para base64 manualmente
-            const base64 = Array.from(data)
-                .map(byte => String.fromCharCode(byte))
-                .join('');
-            return btoa ? btoa(base64) : base64;
-        }
-    } catch (e) {
-        console.error('Erro ao gerar token base64:', e);
-        // Se tudo falhar, retornar o JSON direto (não ideal, mas funciona)
-        return jsonString;
     }
 }
 

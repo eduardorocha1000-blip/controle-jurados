@@ -19,7 +19,7 @@ export async function onRequestGet(context) {
                 s.data_juri,
                 s.hora_juri,
                 s.ano_referencia,
-                j.nome as juiz_nome
+                j.nome_completo as juiz_nome
             FROM cedulas c
             LEFT JOIN sorteios s ON c.sorteio_id = s.id
             LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id

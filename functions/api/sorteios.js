@@ -60,34 +60,63 @@ async function listarSorteios(request, env, corsHeaders) {
     const ano_referencia = url.searchParams.get('ano_referencia');
     const busca = url.searchParams.get('busca');
     
-    let query = `
-        SELECT 
-            s.*,
-            j.nome as juiz_nome
-        FROM sorteios s
-        LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
-        WHERE 1=1
-    `;
-    const params = [];
-    
-    if (ano_referencia) {
-        query += ' AND s.ano_referencia = ?';
-        params.push(ano_referencia);
+    try {
+        // Verificar se o banco está disponível
+        if (!env.DB) {
+            return new Response(JSON.stringify({ 
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no Cloudflare Pages'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+        
+        let query = `
+            SELECT 
+                s.*,
+                j.nome_completo as juiz_nome
+            FROM sorteios s
+            LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
+            WHERE 1=1
+        `;
+        const params = [];
+        
+        if (ano_referencia) {
+            query += ' AND s.ano_referencia = ?';
+            params.push(ano_referencia);
+        }
+        
+        if (busca) {
+            query += ' AND (s.numero_processo LIKE ? OR j.nome_completo LIKE ? OR s.local_sorteio LIKE ? OR s.status LIKE ?)';
+            const buscaParam = `%${busca}%`;
+            params.push(buscaParam, buscaParam, buscaParam, buscaParam);
+        }
+        
+        query += ' ORDER BY s.data_juri DESC';
+        
+        console.log('Executando query:', query);
+        console.log('Parâmetros:', params);
+        
+        const result = await env.DB.prepare(query).bind(...params).all();
+        
+        console.log('Resultado:', result.results?.length || 0, 'sorteios encontrados');
+        
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar sorteios:', error);
+        console.error('Stack:', error.stack);
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao buscar sorteios no banco de dados',
+            details: error.message,
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    if (busca) {
-        query += ' AND (s.numero_processo LIKE ? OR j.nome LIKE ? OR s.local_sorteio LIKE ? OR s.status LIKE ?)';
-        const buscaParam = `%${busca}%`;
-        params.push(buscaParam, buscaParam, buscaParam, buscaParam);
-    }
-    
-    query += ' ORDER BY s.data_juri DESC';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar novo sorteio
@@ -129,7 +158,7 @@ async function criarSorteio(request, env, corsHeaders) {
     const sorteio = await env.DB.prepare(`
         SELECT 
             s.*,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM sorteios s
         LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
         WHERE s.id = ?
@@ -205,7 +234,7 @@ async function atualizarSorteio(id, request, env, corsHeaders) {
     const sorteio = await env.DB.prepare(`
         SELECT 
             s.*,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM sorteios s
         LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
         WHERE s.id = ?

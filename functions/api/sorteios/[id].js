@@ -13,7 +13,7 @@ export async function onRequestGet(context) {
         const sorteio = await env.DB.prepare(`
             SELECT 
                 s.*,
-                j.nome as juiz_nome
+                j.nome_completo as juiz_nome
             FROM sorteios s
             LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
             WHERE s.id = ?

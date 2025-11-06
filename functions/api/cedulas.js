@@ -56,45 +56,74 @@ export async function onRequest(context) {
 
 // Listar cédulas com filtros
 async function listarCedulas(request, env, corsHeaders) {
-    const url = new URL(request.url);
-    const sorteio_id = url.searchParams.get('sorteio_id');
-    const status = url.searchParams.get('status');
-    
-    let query = `
-        SELECT 
-            c.*,
-            c.numero_sequencial as numero_cedula,
-            COALESCE(c.status, 'Gerada') as status,
-            s.numero_processo,
-            s.data_juri,
-            s.hora_juri,
-            s.local_sorteio,
-            s.ano_referencia,
-            j.nome as juiz_nome
-        FROM cedulas c
-        LEFT JOIN sorteios s ON c.sorteio_id = s.id
-        LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
-        WHERE 1=1
-    `;
-    const params = [];
-    
-    if (sorteio_id) {
-        query += ' AND c.sorteio_id = ?';
-        params.push(sorteio_id);
+    try {
+        // Verificar se o banco está disponível
+        if (!env.DB) {
+            return new Response(JSON.stringify({ 
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no Cloudflare Pages'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+        
+        const url = new URL(request.url);
+        const sorteio_id = url.searchParams.get('sorteio_id');
+        const status = url.searchParams.get('status');
+        
+        let query = `
+            SELECT 
+                c.*,
+                c.numero_sequencial as numero_cedula,
+                COALESCE(c.status, 'Gerada') as status,
+                s.numero_processo,
+                s.data_juri,
+                s.hora_juri,
+                s.local_sorteio,
+                s.ano_referencia,
+                j.nome_completo as juiz_nome
+            FROM cedulas c
+            LEFT JOIN sorteios s ON c.sorteio_id = s.id
+            LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
+            WHERE 1=1
+        `;
+        const params = [];
+        
+        if (sorteio_id) {
+            query += ' AND c.sorteio_id = ?';
+            params.push(sorteio_id);
+        }
+        
+        if (status) {
+            query += ' AND COALESCE(c.status, \'Gerada\') = ?';
+            params.push(status);
+        }
+        
+        query += ' ORDER BY c.created_at DESC';
+        
+        console.log('Executando query:', query);
+        console.log('Parâmetros:', params);
+        
+        const result = await env.DB.prepare(query).bind(...params).all();
+        
+        console.log('Resultado:', result.results?.length || 0, 'cédulas encontradas');
+        
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar cédulas:', error);
+        console.error('Stack:', error.stack);
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao buscar cédulas no banco de dados',
+            details: error.message,
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    if (status) {
-        query += ' AND COALESCE(c.status, \'Gerada\') = ?';
-        params.push(status);
-    }
-    
-    query += ' ORDER BY c.created_at DESC';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar nova cédula
@@ -136,7 +165,7 @@ async function criarCedula(request, env, corsHeaders) {
             s.data_juri,
             s.hora_juri,
             s.ano_referencia,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM cedulas c
         LEFT JOIN sorteios s ON c.sorteio_id = s.id
         LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
@@ -207,7 +236,7 @@ async function atualizarCedula(id, request, env, corsHeaders) {
             s.data_juri,
             s.hora_juri,
             s.ano_referencia,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM cedulas c
         LEFT JOIN sorteios s ON c.sorteio_id = s.id
         LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id

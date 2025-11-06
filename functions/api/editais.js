@@ -56,81 +56,148 @@ export async function onRequest(context) {
 
 // Listar editais com filtros
 async function listarEditais(request, env, corsHeaders) {
-    const url = new URL(request.url);
-    const ano = url.searchParams.get('ano');
-    const status = url.searchParams.get('status');
-    
-    let query = `
-        SELECT 
-            e.*,
-            j.nome as juiz_nome
-        FROM editais e
-        LEFT JOIN juizes j ON e.juiz_id = j.id
-        WHERE 1=1
-    `;
-    const params = [];
-    
-    if (ano) {
-        query += ' AND e.ano = ?';
-        params.push(ano);
+    try {
+        if (!env.DB) {
+            return new Response(JSON.stringify({
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no projeto do Cloudflare Pages.'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+
+        const url = new URL(request.url);
+        const anoRefer = url.searchParams.get('ano') || url.searchParams.get('ano_referencia');
+        const status = url.searchParams.get('status');
+
+        let query = `
+            SELECT 
+                e.id,
+                e.numero,
+                e.ano_referencia,
+                e.titulo,
+                e.corpo_rtf,
+                e.data_publicacao_prevista,
+                e.data_publicacao_real,
+                e.arquivo_rtf_gerado,
+                e.juiz_id,
+                e.status,
+                e.created_at,
+                e.updated_at,
+                j.nome_completo as juiz_nome
+            FROM editais e
+            LEFT JOIN juizes j ON e.juiz_id = j.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (anoRefer) {
+            query += ' AND e.ano_referencia = ?';
+            params.push(anoRefer);
+        }
+
+        if (status) {
+            query += ' AND e.status = ?';
+            params.push(status);
+        }
+
+        query += ' ORDER BY e.ano_referencia DESC, e.numero DESC';
+
+        console.log('[editais] Executando query:', query, 'Params:', params);
+
+        const result = await env.DB.prepare(query).bind(...params).all();
+
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar editais:', error);
+        return new Response(JSON.stringify({
+            error: 'Erro ao buscar editais no banco de dados',
+            details: error.message || 'Erro desconhecido',
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    if (status) {
-        query += ' AND e.status = ?';
-        params.push(status);
-    }
-    
-    query += ' ORDER BY e.ano DESC, e.numero DESC';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar novo edital
 async function criarEdital(request, env, corsHeaders) {
-    const data = await request.json();
-    
-    // Validações básicas
-    if (!data.numero || !data.ano) {
-        return new Response(JSON.stringify({ error: 'Número e ano são obrigatórios' }), {
+    if (!env.DB) {
+        return new Response(JSON.stringify({
+            error: 'Banco de dados não configurado',
+            details: 'Configure o binding DB no projeto do Cloudflare Pages.'
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    }
+
+    const data = await safeJson(request);
+    if (!data.success) {
+        return new Response(JSON.stringify({ error: 'JSON inválido', details: data.error }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
     }
-    
-    // Preparar dados
+
+    const payload = data.value;
+
+    if (!payload.numero || !payload.ano_referencia) {
+        return new Response(JSON.stringify({ error: 'Número e ano de referência são obrigatórios' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    }
+
     const insertData = {
-        numero: data.numero,
-        ano: data.ano,
-        data_publicacao: data.data_publicacao || null,
-        juiz_id: data.juiz_id || null,
-        status: data.status || 'rascunho',
-        observacoes: data.observacoes ? data.observacoes.toUpperCase() : null
+        numero: payload.numero,
+        ano_referencia: payload.ano_referencia,
+        titulo: payload.titulo || payload.numero,
+        corpo_rtf: payload.corpo_rtf || null,
+        data_publicacao_prevista: payload.data_publicacao_prevista || null,
+        data_publicacao_real: payload.data_publicacao_real || null,
+        arquivo_rtf_gerado: payload.arquivo_rtf_gerado || null,
+        juiz_id: payload.juiz_id || null,
+        status: payload.status || 'rascunho'
     };
-    
-    // Inserir
+
     const result = await env.DB.prepare(`
         INSERT INTO editais (
-            numero, ano, data_publicacao, juiz_id, status, observacoes
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            numero,
+            ano_referencia,
+            titulo,
+            corpo_rtf,
+            data_publicacao_prevista,
+            data_publicacao_real,
+            arquivo_rtf_gerado,
+            juiz_id,
+            status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-        insertData.numero, insertData.ano, insertData.data_publicacao,
-        insertData.juiz_id, insertData.status, insertData.observacoes
+        insertData.numero,
+        insertData.ano_referencia,
+        insertData.titulo,
+        insertData.corpo_rtf,
+        insertData.data_publicacao_prevista,
+        insertData.data_publicacao_real,
+        insertData.arquivo_rtf_gerado,
+        insertData.juiz_id,
+        insertData.status
     ).run();
-    
-    // Buscar o edital criado
+
     const edital = await env.DB.prepare(`
         SELECT 
             e.*,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM editais e
         LEFT JOIN juizes j ON e.juiz_id = j.id
         WHERE e.id = ?
     `).bind(result.meta.last_row_id).first();
-    
+
     return new Response(JSON.stringify(edital), {
         status: 201,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -139,9 +206,16 @@ async function criarEdital(request, env, corsHeaders) {
 
 // Atualizar edital
 async function atualizarEdital(id, request, env, corsHeaders) {
-    const data = await request.json();
-    
-    // Verificar se existe
+    if (!env.DB) {
+        return new Response(JSON.stringify({
+            error: 'Banco de dados não configurado',
+            details: 'Configure o binding DB no projeto do Cloudflare Pages.'
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    }
+
     const existente = await env.DB.prepare('SELECT id FROM editais WHERE id = ?').bind(id).first();
     if (!existente) {
         return new Response(JSON.stringify({ error: 'Edital não encontrado' }), {
@@ -149,56 +223,79 @@ async function atualizarEdital(id, request, env, corsHeaders) {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
     }
-    
-    // Preparar dados de atualização
+
+    const data = await safeJson(request);
+    if (!data.success) {
+        return new Response(JSON.stringify({ error: 'JSON inválido', details: data.error }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    }
+
+    const payload = data.value;
     const updates = [];
     const values = [];
-    
-    if (data.numero !== undefined) {
+
+    if (payload.numero !== undefined) {
         updates.push('numero = ?');
-        values.push(data.numero);
+        values.push(payload.numero);
     }
-    if (data.ano !== undefined) {
-        updates.push('ano = ?');
-        values.push(data.ano);
+    if (payload.ano_referencia !== undefined || payload.ano !== undefined) {
+        updates.push('ano_referencia = ?');
+        values.push(payload.ano_referencia ?? payload.ano);
     }
-    if (data.data_publicacao !== undefined) {
-        updates.push('data_publicacao = ?');
-        values.push(data.data_publicacao || null);
+    if (payload.titulo !== undefined) {
+        updates.push('titulo = ?');
+        values.push(payload.titulo);
     }
-    if (data.juiz_id !== undefined) {
+    if (payload.corpo_rtf !== undefined) {
+        updates.push('corpo_rtf = ?');
+        values.push(payload.corpo_rtf);
+    }
+    if (payload.data_publicacao_prevista !== undefined || payload.data_publicacao !== undefined) {
+        updates.push('data_publicacao_prevista = ?');
+        values.push(payload.data_publicacao_prevista ?? payload.data_publicacao ?? null);
+    }
+    if (payload.data_publicacao_real !== undefined) {
+        updates.push('data_publicacao_real = ?');
+        values.push(payload.data_publicacao_real ?? null);
+    }
+    if (payload.arquivo_rtf_gerado !== undefined) {
+        updates.push('arquivo_rtf_gerado = ?');
+        values.push(payload.arquivo_rtf_gerado);
+    }
+    if (payload.juiz_id !== undefined) {
         updates.push('juiz_id = ?');
-        values.push(data.juiz_id || null);
+        values.push(payload.juiz_id ?? null);
     }
-    if (data.status !== undefined) {
+    if (payload.status !== undefined) {
         updates.push('status = ?');
-        values.push(data.status);
+        values.push(payload.status);
     }
-    
+
     if (updates.length === 0) {
         return new Response(JSON.stringify({ error: 'Nenhum campo para atualizar' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
     }
-    
+
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
-    
+
     await env.DB.prepare(`
         UPDATE editais SET ${updates.join(', ')} WHERE id = ?
     `).bind(...values).run();
-    
-    // Buscar atualizado
+
     const edital = await env.DB.prepare(`
         SELECT 
             e.*,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM editais e
         LEFT JOIN juizes j ON e.juiz_id = j.id
         WHERE e.id = ?
     `).bind(id).first();
-    
+
     return new Response(JSON.stringify(edital), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
@@ -219,5 +316,15 @@ async function excluirEdital(id, env, corsHeaders) {
         status: 204,
         headers: corsHeaders
     });
+}
+
+async function safeJson(request) {
+    try {
+        const json = await request.json();
+        return { success: true, value: json };
+    } catch (error) {
+        console.error('Falha ao ler JSON:', error);
+        return { success: false, error: error.message || 'JSON inválido' };
+    }
 }
 

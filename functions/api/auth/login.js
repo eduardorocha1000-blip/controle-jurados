@@ -26,7 +26,21 @@ export async function onRequestPost(context) {
             });
         }
         
-        const { email, senha } = await request.json();
+        // Verificar se o body pode ser parseado
+        let email, senha;
+        try {
+            const body = await request.json();
+            email = body.email;
+            senha = body.senha;
+        } catch (parseError) {
+            console.error('Erro ao parsear JSON:', parseError);
+            return new Response(JSON.stringify({ 
+                error: 'Formato de requisição inválido. Envie JSON válido.' 
+            }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
         
         if (!email || !senha) {
             return new Response(JSON.stringify({ error: 'Email e senha são obrigatórios' }), {
@@ -89,10 +103,21 @@ export async function onRequestPost(context) {
         });
     } catch (error) {
         console.error('Erro no login:', error);
-        return new Response(JSON.stringify({ 
+        console.error('Stack:', error.stack);
+        console.error('DB disponível?', !!env.DB);
+        
+        // Sempre retornar uma resposta válida JSON
+        const errorResponse = {
             error: error.message || 'Erro interno do servidor',
-            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        }), {
+            type: error.name || 'UnknownError'
+        };
+        
+        // Adicionar detalhes apenas em desenvolvimento
+        if (error.stack) {
+            errorResponse.stack = error.stack;
+        }
+        
+        return new Response(JSON.stringify(errorResponse), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

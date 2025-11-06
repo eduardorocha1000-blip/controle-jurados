@@ -56,37 +56,66 @@ export async function onRequest(context) {
 
 // Listar juízes com filtros
 async function listarJuizes(request, env, corsHeaders) {
-    const url = new URL(request.url);
-    const status = url.searchParams.get('status');
-    const titular = url.searchParams.get('titular');
-    const busca = url.searchParams.get('busca');
-    
-    let query = 'SELECT * FROM juizes WHERE 1=1';
-    const params = [];
-    
-    if (status) {
-        query += ' AND status = ?';
-        params.push(status);
+    try {
+        // Verificar se o banco está disponível
+        if (!env.DB) {
+            return new Response(JSON.stringify({ 
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no Cloudflare Pages'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+        
+        const url = new URL(request.url);
+        const status = url.searchParams.get('status');
+        const titular = url.searchParams.get('titular');
+        const busca = url.searchParams.get('busca');
+        
+        let query = 'SELECT * FROM juizes WHERE 1=1';
+        const params = [];
+        
+        if (status) {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+        
+        if (titular) {
+            query += ' AND titular = ?';
+            params.push(titular);
+        }
+        
+        if (busca) {
+            query += ' AND (nome_completo LIKE ? OR cargo LIKE ? OR email LIKE ?)';
+            const buscaParam = `%${busca}%`;
+            params.push(buscaParam, buscaParam, buscaParam);
+        }
+        
+        query += ' ORDER BY nome_completo';
+        
+        console.log('Executando query:', query);
+        console.log('Parâmetros:', params);
+        
+        const result = await env.DB.prepare(query).bind(...params).all();
+        
+        console.log('Resultado:', result.results?.length || 0, 'juízes encontrados');
+        
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar juízes:', error);
+        console.error('Stack:', error.stack);
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao buscar juízes no banco de dados',
+            details: error.message,
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    if (titular) {
-        query += ' AND titular = ?';
-        params.push(titular);
-    }
-    
-    if (busca) {
-        query += ' AND (nome LIKE ? OR cargo LIKE ? OR email LIKE ?)';
-        const buscaParam = `%${busca}%`;
-        params.push(buscaParam, buscaParam, buscaParam);
-    }
-    
-    query += ' ORDER BY nome';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar novo juiz

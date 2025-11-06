@@ -56,25 +56,54 @@ export async function onRequest(context) {
 
 // Listar instituições com filtros
 async function listarInstituicoes(request, env, corsHeaders) {
-    const url = new URL(request.url);
-    const busca = url.searchParams.get('busca');
-    
-    let query = 'SELECT * FROM instituicoes WHERE 1=1';
-    const params = [];
-    
-    if (busca) {
-        query += ' AND (nome LIKE ? OR cnpj LIKE ? OR email LIKE ?)';
-        const buscaParam = `%${busca}%`;
-        params.push(buscaParam, buscaParam, buscaParam);
+    try {
+        // Verificar se o banco está disponível
+        if (!env.DB) {
+            return new Response(JSON.stringify({ 
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no Cloudflare Pages'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+        
+        const url = new URL(request.url);
+        const busca = url.searchParams.get('busca');
+        
+        let query = 'SELECT * FROM instituicoes WHERE 1=1';
+        const params = [];
+        
+        if (busca) {
+            query += ' AND (nome LIKE ? OR cnpj LIKE ? OR email LIKE ?)';
+            const buscaParam = `%${busca}%`;
+            params.push(buscaParam, buscaParam, buscaParam);
+        }
+        
+        query += ' ORDER BY nome';
+        
+        console.log('Executando query:', query);
+        console.log('Parâmetros:', params);
+        
+        const result = await env.DB.prepare(query).bind(...params).all();
+        
+        console.log('Resultado:', result.results?.length || 0, 'instituições encontradas');
+        
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar instituições:', error);
+        console.error('Stack:', error.stack);
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao buscar instituições no banco de dados',
+            details: error.message,
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    query += ' ORDER BY nome';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar nova instituição

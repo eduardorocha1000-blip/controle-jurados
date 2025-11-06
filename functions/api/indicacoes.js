@@ -56,43 +56,72 @@ export async function onRequest(context) {
 
 // Listar indicações com filtros
 async function listarIndicacoes(request, env, corsHeaders) {
-    const url = new URL(request.url);
-    const ano_referencia = url.searchParams.get('ano_referencia');
-    const instituicao_id = url.searchParams.get('instituicao_id');
-    const status = url.searchParams.get('status');
-    
-    let query = `
-        SELECT 
-            i.*,
-            inst.nome as instituicao_nome
-        FROM indicacoes i
-        LEFT JOIN instituicoes inst ON i.instituicao_id = inst.id
-        WHERE 1=1
-    `;
-    const params = [];
-    
-    if (ano_referencia) {
-        query += ' AND i.ano_referencia = ?';
-        params.push(ano_referencia);
+    try {
+        // Verificar se o banco está disponível
+        if (!env.DB) {
+            return new Response(JSON.stringify({ 
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no Cloudflare Pages'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+        
+        const url = new URL(request.url);
+        const ano_referencia = url.searchParams.get('ano_referencia');
+        const instituicao_id = url.searchParams.get('instituicao_id');
+        const status = url.searchParams.get('status');
+        
+        let query = `
+            SELECT 
+                i.*,
+                inst.nome as instituicao_nome
+            FROM indicacoes i
+            LEFT JOIN instituicoes inst ON i.instituicao_id = inst.id
+            WHERE 1=1
+        `;
+        const params = [];
+        
+        if (ano_referencia) {
+            query += ' AND i.ano_referencia = ?';
+            params.push(ano_referencia);
+        }
+        
+        if (instituicao_id) {
+            query += ' AND i.instituicao_id = ?';
+            params.push(instituicao_id);
+        }
+        
+        if (status) {
+            query += ' AND i.status = ?';
+            params.push(status);
+        }
+        
+        query += ' ORDER BY i.ano_referencia DESC, i.created_at DESC';
+        
+        console.log('Executando query:', query);
+        console.log('Parâmetros:', params);
+        
+        const result = await env.DB.prepare(query).bind(...params).all();
+        
+        console.log('Resultado:', result.results?.length || 0, 'indicações encontradas');
+        
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar indicações:', error);
+        console.error('Stack:', error.stack);
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao buscar indicações no banco de dados',
+            details: error.message,
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    if (instituicao_id) {
-        query += ' AND i.instituicao_id = ?';
-        params.push(instituicao_id);
-    }
-    
-    if (status) {
-        query += ' AND i.status = ?';
-        params.push(status);
-    }
-    
-    query += ' ORDER BY i.ano_referencia DESC, i.created_at DESC';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar nova indicação

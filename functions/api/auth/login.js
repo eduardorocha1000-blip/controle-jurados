@@ -1,6 +1,26 @@
 // Handler para /api/auth/login
 // Cloudflare Pages Functions mapeia /api/auth/login para functions/api/auth/login.js
 
+// Handler genérico (aceita qualquer método)
+export async function onRequest(context) {
+    const { request } = context;
+    
+    // Se for POST, processar login
+    if (request.method === 'POST') {
+        return await onRequestPost(context);
+    }
+    
+    // Para outros métodos, retornar erro
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json'
+        }
+    });
+}
+
+// Handler específico para POST
 export async function onRequestPost(context) {
     const { request, env } = context;
     

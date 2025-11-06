@@ -1,7 +1,7 @@
 // JavaScript para gerenciar jurados
 // Substitui a lógica das views EJS
 
-const API_URL = '/api/jurados';
+const JURADOS_API_URL = '/api/jurados';
 
 // Verificar autenticação ao carregar
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,7 +22,7 @@ async function carregarJurados() {
     try {
         mostrarLoading(true);
         
-        const url = new URL(API_URL, window.location.origin);
+        const url = new URL(JURADOS_API_URL, window.location.origin);
         const params = new URLSearchParams();
         
         const busca = document.getElementById('busca')?.value;
@@ -204,8 +204,10 @@ function exibirEstatisticas(stats) {
     `;
     
     // Atualizar rodapé
-    document.getElementById('total-jurados').textContent = stats.totalJurados || 0;
-    document.getElementById('total-instituicoes').textContent = stats.totalInstituicoes || 0;
+    const totalJuradosEl = document.getElementById('total-jurados');
+    const totalInstituicoesEl = document.getElementById('total-instituicoes');
+    if (totalJuradosEl) totalJuradosEl.textContent = stats.totalJurados || 0;
+    if (totalInstituicoesEl) totalInstituicoesEl.textContent = stats.totalInstituicoes || 0;
 }
 
 // Carregar instituições para o filtro
@@ -241,7 +243,7 @@ async function excluirJurado(id) {
     }
     
     try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${JURADOS_API_URL}/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -262,9 +264,13 @@ async function excluirJurado(id) {
 
 // Limpar filtros
 function limparFiltros() {
-    document.getElementById('busca').value = '';
-    document.getElementById('instituicao_id').value = '';
-    document.getElementById('status').value = '';
+    const buscaEl = document.getElementById('busca');
+    const instituicaoEl = document.getElementById('instituicao_id');
+    const statusEl = document.getElementById('status');
+    
+    if (buscaEl) buscaEl.value = '';
+    if (instituicaoEl) instituicaoEl.value = '';
+    if (statusEl) statusEl.value = '';
     carregarJurados();
 }
 

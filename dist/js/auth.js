@@ -1,7 +1,7 @@
 // Sistema de autenticação para Cloudflare Pages
 // Substitui express-session por JWT
 
-const API_URL = '/api/auth';
+const AUTH_API_URL = '/api/auth';
 
 // Aguardar DOM estar pronto
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Pathname:', pathname);
     
     // Verificar se está na página de login
-    if (pathname === '/index.html' || pathname === '/' || pathname.endsWith('/index.html')) {
+    if (pathname === '/index.html' || pathname === '/' || pathname.endsWith('/index.html') || pathname === '/jurados') {
         const loginForm = document.getElementById('loginForm');
         console.log('Formulário encontrado:', !!loginForm);
         
@@ -68,7 +68,7 @@ async function fazerLogin() {
     console.log('Fazendo login para:', email);
     
     try {
-        const response = await fetch(`${API_URL}/login`, {
+        const response = await fetch(`${AUTH_API_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

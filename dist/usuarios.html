@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - Controle de Jurados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.jpg" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" id="userMenu">
+                            👤 <span id="userName">Usuário</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil.html">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">🚪 Sair</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard.html">📊 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juizes.html">⚖️ Juízes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instituicoes.html">🏢 Instituições</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/jurados.html">👥 Jurados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/indicacoes.html">📋 Indicações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sorteios.html">🎲 Sorteios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ultimo-conselho.html">🙋 Último Conselho</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cedulas.html">🎫 Cédulas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editais.html">📄 Editais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/emails.html">📧 E-mails</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/relatorios.html">📈 Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backup.html">💾 Backup</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/usuarios.html">👤 Usuários</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2>Gestão de Usuários</h2>
+                        <p class="text-muted mb-0">Controle os perfis e permissões de acesso do sistema.</p>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="me-3" style="font-size: 3rem;">🧑‍💼</div>
+                            <div>
+                                <h5 class="card-title mb-2">Painel de usuários em fase de migração</h5>
+                                <p class="text-muted mb-2">
+                                    Aqui você poderá criar novos usuários, definir perfis (administrador/servidor) e redefinir senhas.
+                                </p>
+                                <p class="text-muted mb-0">
+                                    Enquanto a funcionalidade não está ativa, mantenha a administração de usuários através da base D1 ou módulo original.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mb-0" role="alert">
+                            Recomendação: mantenha o cadastro de usuários atualizado e revogue acessos de contas inativas após a migração.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer-custom">
+        <div class="container">
+            <p class="mb-0 text-center text-muted">Controle de Jurados - Administração de Usuários</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/usuarios.js"></script>
+</body>
+</html>
+

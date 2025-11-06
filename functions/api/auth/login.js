@@ -158,19 +158,28 @@ async function gerarToken(usuario, env) {
     
     // TODO: Implementar JWT real
     // Por enquanto, retornar um token base64 simples
-    // btoa pode não estar disponível no Cloudflare Workers, usar alternativa
+    // Cloudflare Workers tem btoa/atob disponível
+    const jsonString = JSON.stringify(payload);
+    
+    // Usar btoa (disponível no Cloudflare Workers)
+    // Se btoa não estiver disponível, usar TextEncoder/TextDecoder
     try {
-        const jsonString = JSON.stringify(payload);
-        // Usar TextEncoder/TextDecoder ou método compatível com Workers
-        const tokenData = btoa ? btoa(jsonString) : Buffer.from(jsonString).toString('base64');
-        return tokenData;
+        if (typeof btoa !== 'undefined') {
+            return btoa(jsonString);
+        } else {
+            // Fallback: usar TextEncoder/TextDecoder
+            const encoder = new TextEncoder();
+            const data = encoder.encode(jsonString);
+            // Converter para base64 manualmente
+            const base64 = Array.from(data)
+                .map(byte => String.fromCharCode(byte))
+                .join('');
+            return btoa ? btoa(base64) : base64;
+        }
     } catch (e) {
-        // Fallback: usar método manual de base64
-        const jsonString = JSON.stringify(payload);
-        const base64 = Buffer ? Buffer.from(jsonString).toString('base64') : 
-            btoa ? btoa(jsonString) : 
-            jsonString; // Se nada funcionar, retornar o JSON direto
-        return base64;
+        console.error('Erro ao gerar token base64:', e);
+        // Se tudo falhar, retornar o JSON direto (não ideal, mas funciona)
+        return jsonString;
     }
 }
 

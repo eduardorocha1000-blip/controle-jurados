@@ -56,37 +56,66 @@ export async function onRequest(context) {
 
 // Listar editais com filtros
 async function listarEditais(request, env, corsHeaders) {
-    const url = new URL(request.url);
-    const ano = url.searchParams.get('ano');
-    const status = url.searchParams.get('status');
-    
-    let query = `
-        SELECT 
-            e.*,
-            j.nome as juiz_nome
-        FROM editais e
-        LEFT JOIN juizes j ON e.juiz_id = j.id
-        WHERE 1=1
-    `;
-    const params = [];
-    
-    if (ano) {
-        query += ' AND e.ano = ?';
-        params.push(ano);
+    try {
+        // Verificar se o banco está disponível
+        if (!env.DB) {
+            return new Response(JSON.stringify({ 
+                error: 'Banco de dados não configurado',
+                details: 'Configure o binding DB no Cloudflare Pages'
+            }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+        
+        const url = new URL(request.url);
+        const ano_referencia = url.searchParams.get('ano') || url.searchParams.get('ano_referencia');
+        const status = url.searchParams.get('status');
+        
+        let query = `
+            SELECT 
+                e.*,
+                j.nome_completo as juiz_nome
+            FROM editais e
+            LEFT JOIN juizes j ON e.juiz_id = j.id
+            WHERE 1=1
+        `;
+        const params = [];
+        
+        if (ano_referencia) {
+            query += ' AND e.ano_referencia = ?';
+            params.push(ano_referencia);
+        }
+        
+        if (status) {
+            query += ' AND e.status = ?';
+            params.push(status);
+        }
+        
+        query += ' ORDER BY e.ano_referencia DESC, e.numero DESC';
+        
+        console.log('Executando query:', query);
+        console.log('Parâmetros:', params);
+        
+        const result = await env.DB.prepare(query).bind(...params).all();
+        
+        console.log('Resultado:', result.results?.length || 0, 'editais encontrados');
+        
+        return new Response(JSON.stringify(result.results || []), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Erro ao listar editais:', error);
+        console.error('Stack:', error.stack);
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao buscar editais no banco de dados',
+            details: error.message,
+            type: error.name
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
     }
-    
-    if (status) {
-        query += ' AND e.status = ?';
-        params.push(status);
-    }
-    
-    query += ' ORDER BY e.ano DESC, e.numero DESC';
-    
-    const result = await env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify(result.results || []), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 }
 
 // Criar novo edital
@@ -94,8 +123,8 @@ async function criarEdital(request, env, corsHeaders) {
     const data = await request.json();
     
     // Validações básicas
-    if (!data.numero || !data.ano) {
-        return new Response(JSON.stringify({ error: 'Número e ano são obrigatórios' }), {
+    if (!data.numero || !data.ano_referencia) {
+        return new Response(JSON.stringify({ error: 'Número e ano de referência são obrigatórios' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -104,8 +133,10 @@ async function criarEdital(request, env, corsHeaders) {
     // Preparar dados
     const insertData = {
         numero: data.numero,
-        ano: data.ano,
-        data_publicacao: data.data_publicacao || null,
+        ano_referencia: data.ano_referencia || data.ano,
+        titulo: data.titulo || data.numero,
+        data_publicacao_prevista: data.data_publicacao_prevista || data.data_publicacao || null,
+        data_publicacao_real: data.data_publicacao_real || null,
         juiz_id: data.juiz_id || null,
         status: data.status || 'rascunho',
         observacoes: data.observacoes ? data.observacoes.toUpperCase() : null
@@ -114,10 +145,11 @@ async function criarEdital(request, env, corsHeaders) {
     // Inserir
     const result = await env.DB.prepare(`
         INSERT INTO editais (
-            numero, ano, data_publicacao, juiz_id, status, observacoes
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            numero, ano_referencia, titulo, data_publicacao_prevista, data_publicacao_real, juiz_id, status, observacoes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-        insertData.numero, insertData.ano, insertData.data_publicacao,
+        insertData.numero, insertData.ano_referencia, insertData.titulo,
+        insertData.data_publicacao_prevista, insertData.data_publicacao_real,
         insertData.juiz_id, insertData.status, insertData.observacoes
     ).run();
     
@@ -125,7 +157,7 @@ async function criarEdital(request, env, corsHeaders) {
     const edital = await env.DB.prepare(`
         SELECT 
             e.*,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM editais e
         LEFT JOIN juizes j ON e.juiz_id = j.id
         WHERE e.id = ?
@@ -158,13 +190,17 @@ async function atualizarEdital(id, request, env, corsHeaders) {
         updates.push('numero = ?');
         values.push(data.numero);
     }
-    if (data.ano !== undefined) {
-        updates.push('ano = ?');
-        values.push(data.ano);
+    if (data.ano_referencia !== undefined || data.ano !== undefined) {
+        updates.push('ano_referencia = ?');
+        values.push(data.ano_referencia || data.ano);
     }
-    if (data.data_publicacao !== undefined) {
-        updates.push('data_publicacao = ?');
-        values.push(data.data_publicacao || null);
+    if (data.data_publicacao_prevista !== undefined || data.data_publicacao !== undefined) {
+        updates.push('data_publicacao_prevista = ?');
+        values.push(data.data_publicacao_prevista || data.data_publicacao || null);
+    }
+    if (data.data_publicacao_real !== undefined) {
+        updates.push('data_publicacao_real = ?');
+        values.push(data.data_publicacao_real || null);
     }
     if (data.juiz_id !== undefined) {
         updates.push('juiz_id = ?');
@@ -193,7 +229,7 @@ async function atualizarEdital(id, request, env, corsHeaders) {
     const edital = await env.DB.prepare(`
         SELECT 
             e.*,
-            j.nome as juiz_nome
+            j.nome_completo as juiz_nome
         FROM editais e
         LEFT JOIN juizes j ON e.juiz_id = j.id
         WHERE e.id = ?

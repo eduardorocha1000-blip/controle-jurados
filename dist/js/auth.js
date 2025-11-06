@@ -3,22 +3,69 @@
 
 const API_URL = '/api/auth';
 
-// Verificar se está na página de login
-if (window.location.pathname === '/index.html' || window.location.pathname === '/') {
-    document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await fazerLogin();
-    });
-} else {
-    // Verificar autenticação em outras páginas
-    verificarAutenticacao();
-}
+// Aguardar DOM estar pronto
+document.addEventListener('DOMContentLoaded', () => {
+    const pathname = window.location.pathname;
+    console.log('Pathname:', pathname);
+    
+    // Verificar se está na página de login
+    if (pathname === '/index.html' || pathname === '/' || pathname.endsWith('/index.html')) {
+        const loginForm = document.getElementById('loginForm');
+        console.log('Formulário encontrado:', !!loginForm);
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                console.log('Formulário enviado!');
+                await fazerLogin();
+            });
+        } else {
+            console.error('Formulário de login não encontrado!');
+        }
+    } else {
+        // Verificar autenticação em outras páginas
+        verificarAutenticacao();
+    }
+});
 
 // Fazer login
 async function fazerLogin() {
-    const email = document.getElementById('email').value;
-    const senha = document.getElementById('senha').value;
+    const emailInput = document.getElementById('email');
+    const senhaInput = document.getElementById('senha');
+    const submitButton = document.querySelector('#loginForm button[type="submit"]');
     const errorDiv = document.getElementById('errorMessage');
+    
+    if (!emailInput || !senhaInput) {
+        console.error('Campos de email ou senha não encontrados!');
+        if (errorDiv) {
+            errorDiv.textContent = 'Erro: Campos não encontrados. Recarregue a página.';
+            errorDiv.classList.remove('d-none');
+        }
+        return;
+    }
+    
+    const email = emailInput.value.trim();
+    const senha = senhaInput.value;
+    
+    if (!email || !senha) {
+        if (errorDiv) {
+            errorDiv.textContent = 'Por favor, preencha email e senha.';
+            errorDiv.classList.remove('d-none');
+        }
+        return;
+    }
+    
+    // Mostrar loading
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Entrando...';
+    }
+    
+    if (errorDiv) {
+        errorDiv.classList.add('d-none');
+    }
+    
+    console.log('Fazendo login para:', email);
     
     try {
         const response = await fetch(`${API_URL}/login`, {
@@ -28,6 +75,8 @@ async function fazerLogin() {
             },
             body: JSON.stringify({ email, senha })
         });
+        
+        console.log('Resposta recebida:', response.status, response.statusText);
         
         // Verificar se a resposta tem conteúdo
         const contentType = response.headers.get('content-type');
@@ -59,15 +108,23 @@ async function fazerLogin() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Redirecionar para dashboard
-        window.location.href = '/dashboard.html';
+        console.log('Login bem-sucedido! Redirecionando...');
+        
+        // Redirecionar para dashboard (ou jurados se dashboard não existir)
+        window.location.href = '/jurados.html';
     } catch (error) {
         console.error('Erro no login:', error);
         if (errorDiv) {
-            errorDiv.textContent = error.message;
+            errorDiv.textContent = error.message || 'Erro ao fazer login. Tente novamente.';
             errorDiv.classList.remove('d-none');
         } else {
-            alert(error.message);
+            alert(error.message || 'Erro ao fazer login. Tente novamente.');
+        }
+    } finally {
+        // Restaurar botão
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Entrar';
         }
     }
 }

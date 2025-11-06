@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Pathname:', pathname);
     
     // Verificar se está na página de login
-    if (pathname === '/index.html' || pathname === '/' || pathname.endsWith('/index.html') || pathname === '/jurados') {
+    if (pathname === '/index.html' || pathname === '/' || pathname.endsWith('/index.html')) {
         const loginForm = document.getElementById('loginForm');
         console.log('Formulário encontrado:', !!loginForm);
         
@@ -110,8 +110,8 @@ async function fazerLogin() {
         
         console.log('Login bem-sucedido! Redirecionando...');
         
-        // Redirecionar para dashboard (ou jurados se dashboard não existir)
-        window.location.href = '/jurados.html';
+        // Redirecionar para dashboard
+        window.location.href = '/dashboard.html';
     } catch (error) {
         console.error('Erro no login:', error);
         if (errorDiv) {

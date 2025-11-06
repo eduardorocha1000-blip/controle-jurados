@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo me-3">
+                    <div>
+                        <h1 class="header-title">Controle de Jurados</h1>
+                        <p class="header-subtitle">Comarca de Capivari de Baixo</p>
+                    </div>
+                </div>
+                <% if (typeof user !== 'undefined' && user) { %>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 <%= user.nome %>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                        <% if (user.perfil === 'Administrador') { %>
+                        <li><a class="dropdown-item" href="/usuarios">👥 Usuários</a></li>
+                        <% } %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/login/logout" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item">🚪 Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <% if (typeof user !== 'undefined' && user) { %>
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+                            📊 Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'juizes' ? 'active' : '' %>" href="/juizes">
+                            ⚖️ Juízes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'instituicoes' ? 'active' : '' %>" href="/instituicoes">
+                            🏢 Instituições
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'jurados' ? 'active' : '' %>" href="/jurados">
+                            👥 Jurados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'indicacoes' ? 'active' : '' %>" href="/indicacoes">
+                            📋 Indicações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'sorteios' ? 'active' : '' %>" href="/sorteios">
+                            🎲 Sorteios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'cedulas' ? 'active' : '' %>" href="/cedulas">
+                            🎫 Cédulas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'editais' ? 'active' : '' %>" href="/editais">
+                            📄 Editais
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'emails' ? 'active' : '' %>" href="/emails">
+                            📧 E-mails
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'relatorios' ? 'active' : '' %>" href="/relatorios">
+                            📊 Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'backup' ? 'active' : '' %>" href="/backup">
+                            💾 Backup
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <% } %>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <% if (typeof messages !== 'undefined' && messages) { %>
+                <% if (messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ <%= messages.success[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                <% if (messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ <%= messages.error[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+            <% } %>
+            <% if (typeof errors !== 'undefined' && errors && errors.length) { %>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    <% errors.forEach(e => { %>
+                        <li><%= e.msg %></li>
+                    <% }) %>
+                </ul>
+            </div>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle btn-icon"></i><%= error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <% } %>
+
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><%= typeof jurado !== 'undefined' && jurado.id ? 'Editar Jurado' : 'Novo Jurado' %></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0"></h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="<%= typeof action !== 'undefined' ? action : '/jurados' %>" enctype="multipart/form-data">
+                                    <% if (typeof jurado !== 'undefined' && jurado && jurado.id) { %>
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <% } %>
+                                    
+                                    
+
+                                    <div class="row g-1 align-items-start">
+                                        <div class="col-auto mb-3">
+                                            <div id="dropFoto" class="border rounded d-flex align-items-center justify-content-center position-relative" style="background:#fafafa; cursor:pointer; width:105px; height:150px;">
+                                                <input type="file" id="foto" name="foto" accept="image/*" class="d-none">
+                                                <span id="dropFotoHint" class="text-muted text-center" style="font-size:8px; line-height:1; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:4px;">
+                                                    Clique ou Arraste a Foto
+                                                </span>
+                                                <img id="previewFoto" src="<%= jurado && jurado.foto_path ? jurado.foto_path : '' %>" alt="Foto" style="max-width:105px; max-height:150px; <%= jurado && jurado.foto_path ? '' : 'display:none;' %>">
+                                            </div>
+                                        </div>
+                                        <div class="col ps-1">
+                                            <div class="mb-2">
+                                                <label for="nome_completo" class="form-label">Nome Completo *</label>
+                                                <input type="text" class="form-control" id="nome_completo" name="nome_completo" 
+                                                       value="<%= typeof jurado !== 'undefined' && jurado ? jurado.nome_completo : '' %>" required>
+                                            </div>
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-auto">
+                                                    <label for="cpf" class="form-label">CPF *</label>
+                                                    <input type="text" class="form-control" id="cpf" name="cpf" 
+                                                           value="<%= typeof jurado !== 'undefined' && jurado ? jurado.cpf : '' %>" required style="width:160px;">
+                                                </div>
+                                                <div class="col-auto">
+                                                    <label for="rg" class="form-label">RG</label>
+                                                    <input type="text" class="form-control" id="rg" name="rg" 
+                                                           value="<%= typeof jurado !== 'undefined' && jurado ? jurado.rg : '' %>" style="width:160px;">
+                                                </div>
+                                                <div class="col-auto">
+                                                    <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                                                    <div class="d-flex align-items-center">
+                                                        <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" 
+                                                               value="<%= typeof jurado !== 'undefined' && jurado ? jurado.data_nascimento : '' %>" style="width:140px;">
+                                                        <span id="idadeLabel" class="ms-2 text-muted"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="sexo" class="form-label">Sexo *</label>
+                                            <select class="form-select" id="sexo" name="sexo" required>
+                                                <option value="">Selecione...</option>
+                                                <option value="Masculino" <%= typeof jurado !== 'undefined' && jurado && jurado.sexo === 'Masculino' ? 'selected' : '' %>>Masculino</option>
+                                                <option value="Feminino" <%= typeof jurado !== 'undefined' && jurado && jurado.sexo === 'Feminino' ? 'selected' : '' %>>Feminino</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="profissao" class="form-label d-flex align-items-center gap-2">Profissão *
+                                                <button type="button" class="btn btn-outline-secondary btn-sm p-1" style="text-decoration:none; line-height:1;" data-bs-toggle="modal" data-bs-target="#modalIsencoes" title="Isenções do serviço do júri">❓</button>
+                                            </label>
+                                            <input type="text" class="form-control" id="profissao" name="profissao" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.profissao : '' %>" required>
+                                        </div>
+                                    </div>
+
+                                    
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">E-mail</label>
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.email : '' %>">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="telefone" class="form-label">Telefone</label>
+                                            <input type="tel" class="form-control" id="telefone" name="telefone" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.telefone : '' %>">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-8 mb-3">
+                                            <label for="endereco" class="form-label">Endereço *</label>
+                                            <input type="text" class="form-control" id="endereco" name="endereco" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.endereco : '' %>" required>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label for="numero" class="form-label">Número *</label>
+                                            <input type="text" class="form-control" id="numero" name="numero" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.numero : '' %>" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="complemento" class="form-label">Complemento</label>
+                                            <input type="text" class="form-control" id="complemento" name="complemento" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.complemento : '' %>">
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label for="bairro" class="form-label">Bairro *</label>
+                                            <select class="form-select" id="bairro" name="bairro" required>
+                                                <option value="">Selecione o bairro...</option>
+                                                <% if (typeof jurado !== 'undefined' && jurado && jurado.bairro) { %>
+                                                    <option value="<%= jurado.bairro %>" selected><%= jurado.bairro %></option>
+                                                <% } %>
+                                                <option value="Alvorada" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Alvorada' ? 'selected' : '' %>>Alvorada</option>
+                                                <option value="Caçador" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Caçador' ? 'selected' : '' %>>Caçador</option>
+                                                <option value="Cachoeirinha" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Cachoeirinha' ? 'selected' : '' %>>Cachoeirinha</option>
+                                                <option value="Centro" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Centro' ? 'selected' : '' %>>Centro</option>
+                                                <option value="Ilhotinha" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Ilhotinha' ? 'selected' : '' %>>Ilhotinha</option>
+                                                <option value="Paraíso" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Paraíso' ? 'selected' : '' %>>Paraíso</option>
+                                                <option value="Santa Lúcia" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Santa Lúcia' ? 'selected' : '' %>>Santa Lúcia</option>
+                                                <option value="Santo André" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Santo André' ? 'selected' : '' %>>Santo André</option>
+                                                <option value="Três de Maio" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Três de Maio' ? 'selected' : '' %>>Três de Maio</option>
+                                                <option value="Vila Flor" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Vila Flor' ? 'selected' : '' %>>Vila Flor</option>
+                                                <option value="Loteamento Nova Santa Lúcia" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Loteamento Nova Santa Lúcia' ? 'selected' : '' %>>Loteamento Nova Santa Lúcia</option>
+                                                <option value="Loteamento Residencial Cidade Nova" <%= typeof jurado !== 'undefined' && jurado && jurado.bairro === 'Loteamento Residencial Cidade Nova' ? 'selected' : '' %>>Loteamento Residencial Cidade Nova</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label for="cep" class="form-label">CEP</label>
+                                            <input type="text" class="form-control" id="cep" name="cep" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.cep : '88745-000' %>">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cidade" class="form-label">Cidade</label>
+                                            <input type="text" class="form-control" id="cidade" name="cidade" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.cidade : 'Capivari de Baixo' %>">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="uf" class="form-label">UF</label>
+                                            <input type="text" class="form-control" id="uf" name="uf" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.uf : 'SC' %>">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="status" class="form-label">Status *</label>
+                                            <select class="form-select" id="status" name="status" required onchange="toggleMotivoField()">
+                                                <option value="Ativo" <%= typeof jurado !== 'undefined' && jurado && jurado.status === 'Inativo' ? '' : 'selected' %>>Ativo</option>
+                                                <option value="Inativo" <%= typeof jurado !== 'undefined' && jurado && jurado.status === 'Inativo' ? 'selected' : '' %>>Inativo</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label for="motivo" class="form-label">Motivo</label>
+                                            <select class="form-select" id="motivo" name="motivo" onchange="toggleSuspensoField()">
+                                                <option value="">Selecione o motivo...</option>
+                                                <option value="Outra Comarca" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === 'Outra Comarca' ? 'selected' : '' %>>Outra Comarca</option>
+                                                <option value="Falecido" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === 'Falecido' ? 'selected' : '' %>>Falecido</option>
+                                                <option value="Incapacitado" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === 'Incapacitado' ? 'selected' : '' %>>Incapacitado</option>
+                                                <option value="12 meses" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === '12 meses' ? 'selected' : '' %>>12 meses</option>
+                                                <option value="Impedimento" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === 'Impedimento' ? 'selected' : '' %>>Impedimento</option>
+                                                <option value="Idade" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === 'Idade' ? 'selected' : '' %>>Idade</option>
+                                                <option value="Temporário" <%= typeof jurado !== 'undefined' && jurado && jurado.motivo === 'Temporário' ? 'selected' : '' %>>Temporário</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label for="suspenso_ate" class="form-label">Suspenso Até</label>
+                                            <input type="date" class="form-control" id="suspenso_ate" name="suspenso_ate" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.suspenso_ate : '' %>">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ultimo_conselho" class="form-label">Último Conselho</label>
+                                            <input type="date" class="form-control" id="ultimo_conselho" name="ultimo_conselho" 
+                                                   value="<%= typeof jurado !== 'undefined' && jurado ? jurado.ultimo_conselho : '' %>">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="instituicao_id" class="form-label">Indicado pela Instituição</label>
+                                            <select class="form-select" id="instituicao_id" name="instituicao_id">
+                                                <option value="">Selecione a instituição...</option>
+                                                <% if (typeof instituicoes !== 'undefined' && instituicoes.length > 0) { %>
+                                                    <% for (let i = 0; i < instituicoes.length; i++) { %>
+                                                        <% const instituicao = instituicoes[i]; %>
+                                                        <option value="<%= instituicao.id %>" <%= typeof jurado !== 'undefined' && jurado && jurado.instituicao_id == instituicao.id ? 'selected' : '' %>>
+                                                            <%= instituicao.nome %>
+                                                        </option>
+                                                    <% } %>
+                                                <% } %>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="observacoes" class="form-label">Observações</label>
+                                            <textarea class="form-control" id="observacoes" name="observacoes" rows="3"><%= typeof jurado !== 'undefined' && jurado ? jurado.observacoes : '' %></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-save">💾</button>
+                                        <a href="/jurados" class="btn btn-back" title="Voltar">⬅️</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <h6>Importante:</h6>
+                                    <ul class="mb-0">
+                                        <li>Campos marcados com * são obrigatórios</li>
+                                        <li>CPF deve ser único no sistema</li>
+                                        <li>Idade mínima: 18 anos</li>
+                                        <li>E-mail deve ser válido</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Modal Isenções -->
+    <div class="modal fade" id="modalIsencoes" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Isenções do serviço do júri</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2"><strong>Art. 437.</strong> Estão isentos do serviço do júri:</p>
+                    <ul class="mb-0">
+                        <li>I – o Presidente da República e os Ministros de Estado;</li>
+                        <li>II – os Governadores e seus respectivos Secretários;</li>
+                        <li>III – os membros do Congresso Nacional, das Assembléias Legislativas e das Câmaras Distrital e Municipais;</li>
+                        <li>IV – os Prefeitos Municipais;</li>
+                        <li>V – os Magistrados e membros do Ministério Público e da Defensoria Pública;</li>
+                        <li>VI – os servidores do Poder Judiciário, do Ministério Público e da Defensoria Pública;</li>
+                        <li>VII – as autoridades e os servidores da polícia e da segurança pública;</li>
+                        <li>VIII – os militares em serviço ativo;</li>
+                        <li>IX – os cidadãos maiores de 70 (setenta) anos que requeiram sua dispensa;</li>
+                        <li>X – aqueles que o requererem, demonstrando justo impedimento.</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validação de idade mínima 18 anos no novo cadastro
+            const form = document.querySelector('form[action*="/jurados"]');
+            const nasc = document.getElementById('data_nascimento');
+            if (form && nasc && !<%= typeof jurado !== 'undefined' && jurado && jurado.id ? 'true' : 'false' %>) {
+                form.addEventListener('submit', function(e) {
+                    const v = nasc.value;
+                    if (v) {
+                        const hoje = new Date();
+                        const dn = new Date(v + 'T00:00:00');
+                        let idade = hoje.getFullYear() - dn.getFullYear();
+                        const m = hoje.getMonth() - dn.getMonth();
+                        if (m < 0 || (m === 0 && hoje.getDate() < dn.getDate())) { idade--; }
+                        if (idade < 18) {
+                            e.preventDefault();
+                            alert('Idade mínima para jurado é 18 anos. Cadastro não permitido.');
+                            nasc.focus();
+                            return false;
+                        }
+                    }
+                });
+            }
+            // Função para aplicar máscara de CPF
+            function applyCpfMask(input) {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.slice(0, 11);
+                    if (value.length > 9) {
+                        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+                    } else if (value.length > 6) {
+                        value = value.replace(/^(\d{3})(\d{3})(\d{3})$/, '$1.$2.$3');
+                    } else if (value.length > 3) {
+                        value = value.replace(/^(\d{3})(\d{3})$/, '$1.$2');
+                    }
+                    e.target.value = value;
+                });
+            }
+
+            // Função para aplicar máscara de telefone
+            function applyPhoneMask(input) {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.slice(0, 11);
+                    if (value.length === 11) {
+                        value = value.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+                    } else if (value.length === 10) {
+                        value = value.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
+                    } else if (value.length > 6) {
+                        value = value.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+                    } else if (value.length > 2) {
+                        value = value.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+                    }
+                    e.target.value = value;
+                });
+            }
+
+            // Função para aplicar máscara de CEP
+            function applyCepMask(input) {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 8) value = value.slice(0, 8);
+                    if (value.length > 5) {
+                        value = value.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+                    }
+                    e.target.value = value;
+                });
+            }
+
+            // Aplicar máscaras
+            document.querySelectorAll('input[name="cpf"]').forEach(applyCpfMask);
+            document.querySelectorAll('input[name="telefone"]').forEach(applyPhoneMask);
+            document.querySelectorAll('input[name="cep"]').forEach(applyCepMask);
+
+            // Drag & Drop foto
+            const drop = document.getElementById('dropFoto');
+            const inputFile = document.getElementById('foto');
+            const preview = document.getElementById('previewFoto');
+            if (drop && inputFile) {
+                function openPicker(){ inputFile.click(); }
+                drop.addEventListener('click', openPicker);
+                drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('bg-light'); });
+                drop.addEventListener('dragleave', function(){ drop.classList.remove('bg-light'); });
+                drop.addEventListener('drop', function(e){
+                    e.preventDefault();
+                    drop.classList.remove('bg-light');
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        inputFile.files = e.dataTransfer.files;
+                        const file = e.dataTransfer.files[0];
+                        const reader = new FileReader();
+                        reader.onload = function(ev){
+                            if (preview) { preview.src = ev.target.result; preview.style.display = 'block'; }
+                            const hint = document.getElementById('dropFotoHint');
+                            if (hint) hint.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                inputFile.addEventListener('change', function(e){
+                    const file = e.target.files && e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(ev){
+                            if (preview) { preview.src = ev.target.result; preview.style.display = 'block'; }
+                            const hint = document.getElementById('dropFotoHint');
+                            if (hint) hint.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Exibir idade ao lado da data de nascimento
+            (function(){
+                const nasc = document.getElementById('data_nascimento');
+                const idadeEl = document.getElementById('idadeLabel');
+                if (!nasc || !idadeEl) return;
+                function calc() {
+                    const v = nasc.value;
+                    if (!v) { idadeEl.textContent=''; return; }
+                    const hoje = new Date();
+                    const dn = new Date(v + 'T00:00:00');
+                    let idade = hoje.getFullYear() - dn.getFullYear();
+                    const m = hoje.getMonth() - dn.getMonth();
+                    if (m < 0 || (m === 0 && hoje.getDate() < dn.getDate())) { idade--; }
+                    if (idade >= 0 && Number.isFinite(idade)) {
+                        idadeEl.textContent = idade + ' anos';
+                    } else {
+                        idadeEl.textContent = '';
+                    }
+                }
+                nasc.addEventListener('input', calc);
+                calc();
+            })();
+
+            // Ocultar dica se já houver foto
+            (function(){
+                const preview = document.getElementById('previewFoto');
+                const hint = document.getElementById('dropFotoHint');
+                if (preview && hint && preview.style.display !== 'none') {
+                    hint.style.display = 'none';
+                }
+            })();
+
+            // Pré-preencher campos padrão se estiverem vazios
+            const cepField = document.getElementById('cep');
+            const cidadeField = document.getElementById('cidade');
+            const ufField = document.getElementById('uf');
+            
+            if (cepField && !cepField.value) {
+                cepField.value = '88745-000';
+            }
+            if (cidadeField && !cidadeField.value) {
+                cidadeField.value = 'Capivari de Baixo';
+            }
+            if (ufField && !ufField.value) {
+                ufField.value = 'SC';
+            }
+
+            // Converter inputs para maiúsculas, exceto email, password, tel, url
+            document.querySelectorAll('input[type="text"], input[type="search"], textarea').forEach(function(input) {
+                if (input.type !== 'email' && input.type !== 'password' && input.type !== 'tel' && input.type !== 'url') {
+                    input.addEventListener('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+                }
+            });
+
+            // Fetch total de jurados e instituições para o rodapé
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes;
+                })
+                .catch(error => console.error('Erro ao buscar estatísticas:', error));
+            
+            // Inicializar estado dos campos ao carregar a página
+            toggleMotivoField();
+            toggleSuspensoField();
+        });
+        
+        // Função para controlar o campo Motivo baseado no Status
+        function toggleMotivoField() {
+            const statusField = document.getElementById('status');
+            const motivoField = document.getElementById('motivo');
+            const suspensoField = document.getElementById('suspenso_ate');
+            
+            if (statusField.value === 'Ativo') {
+                motivoField.disabled = true;
+                motivoField.value = '';
+                suspensoField.disabled = true;
+                suspensoField.value = '';
+            } else {
+                motivoField.disabled = false;
+            }
+        }
+        
+        // Função para controlar o campo Suspenso Até baseado no Motivo
+        function toggleSuspensoField() {
+            const motivoField = document.getElementById('motivo');
+            const suspensoField = document.getElementById('suspenso_ate');
+            
+            if (motivoField.value === 'Temporário') {
+                suspensoField.disabled = false;
+                // Definir data mínima como hoje
+                const today = new Date().toISOString().split('T')[0];
+                suspensoField.min = today;
+            } else {
+                suspensoField.disabled = true;
+                suspensoField.value = '';
+            }
+        }
+    </script>
+</body>
+</html>

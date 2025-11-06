@@ -1,0 +1,45 @@
+app = "controle-jurados"
+primary_region = "gru"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  HOST = "0.0.0.0"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/"
+    protocol = "http"
+    tls_skip_verify = false
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[mounts]
+  source = "controle_jurados_data"
+  destination = "/app/database"
+

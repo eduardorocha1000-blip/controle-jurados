@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body { height: 100vh; overflow: hidden; }
+        .cedulas-scroll { overflow-y: auto; }
+        @media (max-width: 768px) { body { overflow: auto; height: auto; } .cedulas-scroll { height: auto; } }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            👤 <%= user.nome %>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/login/logout" class="d-inline">
+                                    <button type="submit" class="dropdown-item">🚪 Sair</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container cedulas-scroll" style="height: 604px; overflow-y: auto; flex: 1;">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juizes">⚖️ Juízes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instituicoes">🏢 Instituições</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/jurados">👥 Jurados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/indicacoes">📋 Indicações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sorteios">🎲 Sorteios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ultimo-conselho">🙋 Último Conselho</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/cedulas">🎫 Cédulas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editais">📄 Editais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/emails">📧 E-mails</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/relatorios">📈 Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backup">💾 Backup</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/usuarios"><i class="fas fa-user-cog btn-icon"></i>Usuários</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2>Cédulas</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagens -->
+                <% if (typeof flash !== 'undefined' && flash) { %>
+                    <% if (flash.success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= flash.success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (flash.error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= flash.error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <!-- Filtros e Ações -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar por sorteio ou processo...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="buscarCedulas()">
+                                        🔍 Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-primary" onclick="gerarCedulas()">
+                                        Gerar Cédulas
+                                    </button>
+                                    <button class="btn btn-delete btn-sm" onclick="imprimirCedulas()" title="Imprimir">🗑️</button>
+                                    <button class="btn btn-info" onclick="exportarCedulas()">
+                                        Exportar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row mb-4 stats-cards">
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-ticket-alt fa-2x text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Total</h5>
+                                        <h3 class="mb-0"><%= typeof totalCedulas !== 'undefined' ? totalCedulas : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Geradas</h5>
+                                        <h3 class="mb-0"><%= typeof cedulasGeradas !== 'undefined' ? cedulasGeradas : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-print fa-2x text-info"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Impressas</h5>
+                                        <h3 class="mb-0"><%= typeof cedulasImpressas !== 'undefined' ? cedulasImpressas : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-random fa-2x text-warning"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Sorteios</h5>
+                                        <h3 class="mb-0"><%= typeof totalSorteios !== 'undefined' ? totalSorteios : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seleção de Sorteio -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            🎲 Selecionar Sorteio
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="sorteioSelect" class="form-label">Sorteio para Gerar Cédulas</label>
+                                <select class="form-select" id="sorteioSelect">
+                                    <option value="">Selecione um sorteio...</option>
+                                    <% if (typeof sorteios !== 'undefined' && sorteios) { %>
+                                        <% sorteios.forEach(sorteio => { %>
+                                            <option value="<%= sorteio.id %>" data-processo="<%= sorteio.numero_processo %>" data-data="<%= sorteio.data_juri %>">
+                                                <%= sorteio.numero_processo %> - <%= new Date(sorteio.data_juri).toLocaleDateString('pt-BR') %>
+                                            </option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quantidadeCedulas" class="form-label">Quantidade de Cédulas</label>
+                                <input type="number" class="form-control" id="quantidadeCedulas" min="1" max="1000" value="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Cédulas -->
+                <div class="card">
+                    <div class="card-body">
+                        <% if (typeof cedulas !== 'undefined' && cedulas && cedulas.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sorteio</th>
+                                        <th>Processo</th>
+                                        <th>Data Júri</th>
+                                        <th>Número Cédula</th>
+                                        <th>Status</th>
+                                        <th>Data Geração</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% cedulas.forEach(cedula => { %>
+                                    <tr>
+                                        <td><%= cedula.sorteio_id %></td>
+                                        <td><%= cedula.numero_processo %></td>
+                                        <td><%= new Date(cedula.data_juri).toLocaleDateString('pt-BR') %></td>
+                                        <td><%= cedula.numero_cedula %></td>
+                                        <td>
+                                            <% 
+                                            let badgeClass = 'bg-secondary';
+                                            if (cedula.status === 'Gerada') badgeClass = 'bg-success';
+                                            else if (cedula.status === 'Impressa') badgeClass = 'bg-info';
+                                            else if (cedula.status === 'Utilizada') badgeClass = 'bg-warning';
+                                            %>
+                                            <span class="badge <%= badgeClass %>">
+                                                <%= cedula.status %>
+                                            </span>
+                                        </td>
+                                        <td><%= new Date(cedula.created_at).toLocaleDateString('pt-BR') %></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary" onclick="visualizarCedula(<%= cedula.id %>)" title="Visualizar">
+                                                    👁️
+                                                </button>
+                                                <button class="btn btn-delete btn-sm" onclick="imprimirCedula(<%= cedula.id %>)" title="Imprimir">🗑️</button>
+                                                <button class="btn btn-outline-danger" onclick="excluirCedula(<%= cedula.id %>)" title="Excluir">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhuma cédula gerada</h5>
+                            <p class="text-muted">Selecione um sorteio e gere as cédulas para impressão.</p>
+                            <button class="btn btn-primary" onclick="gerarCedulas()">
+                                ➕ Gerar Primeiras Cédulas
+                            </button>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function ajustarAlturaScroll() {
+            const header = document.querySelector('.header-custom');
+            const footer = document.querySelector('.footer-custom');
+            const container = document.querySelector('.cedulas-scroll');
+            if (!header || !footer || !container) return;
+            const h = header.getBoundingClientRect().height;
+            const f = footer.getBoundingClientRect().height;
+            const altura = window.innerHeight - (h + f);
+            container.style.height = altura + 'px';
+            container.style.overflowY = 'auto';
+        }
+        window.addEventListener('load', ajustarAlturaScroll);
+        window.addEventListener('resize', ajustarAlturaScroll);
+
+        // Funções JavaScript
+        function buscarCedulas() {
+            const termo = document.getElementById('searchInput').value;
+            if (termo.trim()) {
+                window.location.href = `/cedulas?busca=${encodeURIComponent(termo)}`;
+            }
+        }
+
+        function gerarCedulas() {
+            const sorteioId = document.getElementById('sorteioSelect').value;
+            const quantidade = document.getElementById('quantidadeCedulas').value;
+            
+            if (!sorteioId) {
+                alert('Selecione um sorteio antes de gerar as cédulas.');
+                return;
+            }
+            
+            fetch('/cedulas/gerar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sorteio_id: sorteioId,
+                    quantidade: quantidade
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Cédulas geradas com sucesso! ${data.geradas} cédulas criadas.`);
+                    location.reload();
+                } else {
+                    alert('Erro ao gerar cédulas: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao gerar cédulas: ' + error.message);
+            });
+        }
+
+        function imprimirCedulas() {
+            const sorteioId = document.getElementById('sorteioSelect').value;
+            if (!sorteioId) {
+                alert('Selecione um sorteio antes de imprimir as cédulas.');
+                return;
+            }
+            
+            window.open(`/cedulas/imprimir/${sorteioId}`, '_blank');
+        }
+
+        function exportarCedulas() {
+            const sorteioId = document.getElementById('sorteioSelect').value;
+            if (!sorteioId) {
+                alert('Selecione um sorteio antes de exportar as cédulas.');
+                return;
+            }
+            
+            window.location.href = `/cedulas/exportar/${sorteioId}`;
+        }
+
+        function visualizarCedula(id) {
+            window.open(`/cedulas/${id}/visualizar`, '_blank');
+        }
+
+        function imprimirCedula(id) {
+            window.open(`/cedulas/${id}/imprimir`, '_blank');
+        }
+
+        function excluirCedula(id) {
+            fetch(`/cedulas/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Cédula excluída com sucesso!');
+                    location.reload();
+                } else {
+                    alert('Erro ao excluir cédula: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao excluir cédula: ' + error.message);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            ajustarAlturaScroll();
+
+            // Busca em tempo real
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        buscarCedulas();
+                    }
+                });
+            }
+
+            // Fetch total de jurados e instituições para o rodapé
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes;
+                })
+                .catch(error => console.error('Erro ao buscar estatísticas:', error));
+        });
+    </script>
+</body>
+</html>

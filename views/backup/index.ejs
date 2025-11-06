@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body { height: 100vh; overflow: hidden; }
+        .backup-scroll { height: calc(100vh - (var(--header-height) + var(--footer-height))); overflow-y: auto; }
+        @media (max-width: 768px) { body { overflow: auto; height: auto; } .backup-scroll { height: auto; } }
+        
+        /* Aumentar tamanho dos botões Criar Backup e Restaurar Backup e mudar cor de fundo */
+        #backupForm button[type="submit"].btn-primary,
+        #restoreForm button[type="submit"].btn-warning {
+            font-size: 1.1rem !important;
+            font-weight: bold !important;
+            padding: 10px 20px !important;
+            background-color: #EEE9E9 !important;
+            border-color: #EEE9E9 !important;
+            color: #003366 !important; /* Azul escuro */
+        }
+        
+        /* Efeito hover com elevação nos botões Criar Backup e Restaurar Backup */
+        #backupForm button[type="submit"].btn-primary:hover,
+        #restoreForm button[type="submit"].btn-warning:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+            background-color: #DDD9D9 !important; /* Cor hover mais escura */
+            border-color: #DDD9D9 !important;
+            color: #003366 !important; /* Azul escuro */
+        }
+        
+        /* Botão Atualizar - padding zero e emoji 40x40px - regra mais específica */
+        button#btnAtualizarBackup.btn-view.btn-sm {
+            all: unset !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            font-size: 40px !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+            cursor: pointer !important;
+            background-color: transparent !important;
+            border: 1px solid #0d6efd !important;
+            color: #0d6efd !important;
+        }
+        
+        button#btnAtualizarBackup.btn-view.btn-sm * {
+            all: unset !important;
+            font-size: 40px !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+        }
+        
+        button#btnAtualizarBackup.btn-view.btn-sm:hover {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+        }
+        
+        /* Aumentar espaço entre os botões de ações na lista de backups */
+        .btn-group.btn-group-sm {
+            gap: 8px !important;
+            display: inline-flex !important;
+        }
+        
+        .btn-group.btn-group-sm .btn {
+            margin-right: 8px !important;
+        }
+        
+        .btn-group.btn-group-sm .btn:last-child {
+            margin-right: 0 !important;
+        }
+        
+        /* Botões de ações da lista de backups - mesma estrutura do botão atualizar mas 30x30px */
+        /* Todos os botões usam a mesma estrutura do botão Restaurar */
+        .btn-group button.btn-view.btn-sm,
+        .btn-group button.btn-save.btn-sm,
+        .btn-group button.btn-delete.btn-sm,
+        .btn-group .btn-view.btn-sm,
+        .btn-group .btn-save.btn-sm,
+        .btn-group .btn-delete.btn-sm {
+            all: unset !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 30px !important;
+            height: 30px !important;
+            min-width: 30px !important;
+            min-height: 30px !important;
+            max-width: 30px !important;
+            max-height: 30px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            font-size: 30px !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+            cursor: pointer !important;
+            background-color: transparent !important;
+            border: 1px solid #0d6efd !important;
+            color: #0d6efd !important;
+        }
+        
+        .btn-group button.btn-view.btn-sm *,
+        .btn-group button.btn-save.btn-sm *,
+        .btn-group button.btn-delete.btn-sm *,
+        .btn-group .btn-view.btn-sm *,
+        .btn-group .btn-save.btn-sm *,
+        .btn-group .btn-delete.btn-sm * {
+            all: unset !important;
+            font-size: 30px !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+        }
+        
+        .btn-group button.btn-view.btn-sm:hover,
+        .btn-group button.btn-save.btn-sm:hover,
+        .btn-group button.btn-delete.btn-sm:hover,
+        .btn-group .btn-view.btn-sm:hover,
+        .btn-group .btn-save.btn-sm:hover,
+        .btn-group .btn-delete.btn-sm:hover {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+        }
+        
+        /* Botão Salvar Configurações - mesma cor dos outros botões especiais */
+        #containerSalvarConfigBackup .btn-edit.btn-sm,
+        #containerSalvarConfigBackup button.btn-edit.btn-sm,
+        #containerSalvarConfigBackup button[onclick="salvarConfiguracoes()"],
+        #containerSalvarConfigBackup button[onclick="salvarConfiguracoes()"].btn-edit.btn-sm {
+            font-size: 22px !important;
+            padding: 12px 14px !important;
+            background-color: #B9D3EE !important; /* Azul claro */
+            color: #2e5c8a !important; /* Azul escuro */
+            border: none !important;
+        }
+        #containerSalvarConfigBackup .btn-edit.btn-sm *,
+        #containerSalvarConfigBackup button.btn-edit.btn-sm *,
+        #containerSalvarConfigBackup button[onclick="salvarConfiguracoes()"] *,
+        #containerSalvarConfigBackup button[onclick="salvarConfiguracoes()"].btn-edit.btn-sm * {
+            font-size: 22px !important;
+        }
+        #containerSalvarConfigBackup .btn-edit.btn-sm:hover,
+        #containerSalvarConfigBackup button.btn-edit.btn-sm:hover,
+        #containerSalvarConfigBackup button[onclick="salvarConfiguracoes()"]:hover,
+        #containerSalvarConfigBackup button[onclick="salvarConfiguracoes()"].btn-edit.btn-sm:hover {
+            background-color: #9bb8dc !important; /* Azul mais escuro no hover */
+        }
+        
+        /* Botões Detalhes e Excluir com padding de 2px - especificidade maior */
+        .btn-group button.btn-save.btn-sm[onclick*="visualizarBackup"],
+        .btn-group button.btn-save.btn-sm[onclick*="excluirBackup"],
+        button.btn-save.btn-sm[onclick*="visualizarBackup"],
+        button.btn-save.btn-sm[onclick*="excluirBackup"] {
+            padding: 2px !important;
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            min-height: 34px !important;
+            max-width: 34px !important;
+            max-height: 34px !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            👤 <%= user.nome %>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/login/logout" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        🚪 Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+                <div class="p-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/juizes">
+                                ⚖️ Juízes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/instituicoes">
+                                🏢 Instituições
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/jurados">
+                                👥 Jurados
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/indicacoes">
+                                📋 Indicações
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/sorteios">
+                                🎲 Sorteios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/ultimo-conselho">🙋 Último Conselho</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cedulas">
+                                🎫 Cédulas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editais">
+                                📄 Editais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/emails">📧 E-mails</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/relatorios">📈 Relatórios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/backup">💾 Backup</a>
+                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/usuarios"><i class="fas fa-user-cog btn-icon"></i>Usuários</a>
+                    </li>
+                </ul>
+                </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <% if (typeof messages !== 'undefined' && messages) { %>
+                    <% if (messages.success && messages.success.length > 0) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= messages.success[0] %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (messages.error && messages.error.length > 0) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= messages.error[0] %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Backup e Restauração</h2>
+                </div>
+
+                <!-- Estatísticas de Backup -->
+                <div class="row mb-4 stats-cards">
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-download fa-2x text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Backups</h5>
+                                        <h3 class="mb-0"><%= typeof stats !== 'undefined' && stats ? stats.totalBackups : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-calendar fa-2x text-success"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Último Backup</h5>
+                                        <h6 class="mb-0"><%= typeof ultimoBackup !== 'undefined' && ultimoBackup ? new Date(ultimoBackup).toLocaleDateString('pt-BR') : 'Nunca' %></h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-hdd fa-2x text-info"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Tamanho Total</h5>
+                                        <h6 class="mb-0"><%= typeof tamanhoTotal !== 'undefined' && tamanhoTotal ? tamanhoTotal : '0 MB' %></h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-shield-alt fa-2x text-warning"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Status</h5>
+                                        <h6 class="mb-0 text-success">Ativo</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações de Backup -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            
+                            <div class="card-body">
+                                <p class="card-text">Criar um backup completo do sistema incluindo banco de dados e arquivos.</p>
+                                
+                                <form id="backupForm" method="POST" action="/backup/criar">
+                                    <div class="mb-3">
+                                        <label for="nomeBackup" class="form-label">Nome do Backup (opcional)</label>
+                                        <input type="text" class="form-control" id="nomeBackup" name="nome" placeholder="Ex: Backup_<%= new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') %>">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="descricaoBackup" class="form-label">Descrição</label>
+                                        <textarea class="form-control" id="descricaoBackup" name="descricao" rows="3" placeholder="Descrição opcional do backup..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="incluirArquivos" name="incluir_arquivos" checked>
+                                        <label class="form-check-label" for="incluirArquivos">
+                                            Incluir arquivos de upload
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="comprimirBackup" name="comprimir" checked>
+                                        <label class="form-check-label" for="comprimirBackup">
+                                            Comprimir backup (recomendado)
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-download btn-icon"></i>Criar Backup
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            
+                            <div class="card-body">
+                                <p class="card-text">Restaurar dados a partir de um arquivo de backup existente.</p>
+                                
+                                <form id="restoreForm" method="POST" action="/backup/restaurar" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="arquivoBackup" class="form-label">Arquivo de Backup</label>
+                                        <input type="file" class="form-control" id="arquivoBackup" name="arquivo" accept=".zip,.sql,.json" required>
+                                        <div class="form-text">Formatos aceitos: ZIP, SQL, JSON</div>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="fazerBackupAntes" name="backup_antes" checked>
+                                        <label class="form-check-label" for="fazerBackupAntes">
+                                            Fazer backup antes de restaurar
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmarRestauracao" name="confirmar" required>
+                                        <label class="form-check-label" for="confirmarRestauracao">
+                                            Confirmo que desejo restaurar os dados
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-warning" onclick="return confirmarRestauracao()">
+                                            <i class="fas fa-upload btn-icon"></i>Restaurar Backup
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Backups -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list btn-icon"></i>Backups Disponíveis
+                        </h5>
+                        <button id="btnAtualizarBackup" class="btn btn-view btn-sm" onclick="atualizarLista()" title="Atualizar">🔄</button>
+                    </div>
+                    <div class="card-body">
+                        <% if (typeof backups !== 'undefined' && backups && backups.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Data</th>
+                                        <th>Tamanho</th>
+                                        <th>Tipo</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% backups.forEach(backup => { %>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong><%= backup.nome || 'Backup_' + backup.id %></strong>
+                                                <% if (backup.descricao) { %>
+                                                <br><small class="text-muted"><%= backup.descricao %></small>
+                                                <% } %>
+                                            </div>
+                                        </td>
+                                        <td><%= new Date(backup.created_at).toLocaleString('pt-BR') %></td>
+                                        <td><%= backup.tamanho || 'N/A' %></td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                <%= backup.tipo || 'Completo' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <% 
+                                            let statusClass = 'bg-success';
+                                            if (backup.status === 'Erro') statusClass = 'bg-danger';
+                                            else if (backup.status === 'Processando') statusClass = 'bg-warning';
+                                            %>
+                                            <span class="badge <%= statusClass %>">
+                                                <%= backup.status || 'Concluído' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-save btn-sm" onclick="baixarBackup('<%= backup.arquivo %>')" title="Baixar">
+                                                    ⬇️
+                                                </button>
+                                                <button class="btn btn-save btn-sm" onclick="restaurarBackup('<%= backup.arquivo %>')" title="Restaurar">
+                                                    ⬆️
+                                                </button>
+                                                <button class="btn btn-save btn-sm" onclick="visualizarBackup('<%= backup.arquivo %>')" title="Detalhes">
+                                                    👁️
+                                                </button>
+                                                <button class="btn btn-save btn-sm" onclick="excluirBackup('<%= backup.arquivo %>')" title="Excluir">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhum backup encontrado</h5>
+                            <p class="text-muted">Crie seu primeiro backup para proteger os dados do sistema.</p>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Configurações de Backup -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs btn-icon"></i>Configurações de Backup
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="backupAutomatico" <%= typeof config !== 'undefined' && config.backup_automatico ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="backupAutomatico">
+                                        Backup automático diário
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="manterBackups" <%= typeof config !== 'undefined' && config.manter_backups ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="manterBackups">
+                                        Manter apenas os últimos 30 backups
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="notificarBackup" <%= typeof config !== 'undefined' && config.notificar_backup ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="notificarBackup">
+                                        Notificar por email quando backup falhar
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="comprimirAutomatico" <%= typeof config !== 'undefined' && config.comprimir_automatico ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="comprimirAutomatico">
+                                        Comprimir backups automaticamente
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3" id="containerSalvarConfigBackup">
+                            <button class="btn btn-edit btn-sm" onclick="salvarConfiguracoes()" title="Salvar">💾</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funções JavaScript
+        function confirmarRestauracao() { return true; }
+        function baixarBackup(arquivo) { window.location.href = `/backup/baixar/${arquivo}`; }
+        function restaurarBackup(arquivo) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/backup/restaurar/${arquivo}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+        function visualizarBackup(arquivo) { window.open(`/backup/detalhes/${arquivo}`, '_blank'); }
+        function excluirBackup(arquivo) {
+            fetch(`/backup/${arquivo}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => { alert(data.success ? 'Backup excluído com sucesso!' : ('Erro: ' + data.message)); location.reload(); })
+            .catch(error => { alert('Erro ao excluir backup: ' + error.message); });
+        }
+        function atualizarLista() { location.reload(); }
+        function salvarConfiguracoes() {
+            // Criar formulário oculto e submeter (evita problemas com fetch e protocolo)
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/backup/configuracoes';
+            
+            // Adicionar campos ocultos
+            const campos = {
+                'backup_automatico': document.getElementById('backupAutomatico').checked ? 'true' : 'false',
+                'manter_backups': document.getElementById('manterBackups').checked ? 'true' : 'false',
+                'notificar_backup': document.getElementById('notificarBackup').checked ? 'true' : 'false',
+                'comprimir_automatico': document.getElementById('comprimirAutomatico').checked ? 'true' : 'false'
+            };
+            
+            for (const [name, value] of Object.entries(campos)) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            }
+            
+            // Adicionar ao body e submeter
+            document.body.appendChild(form);
+            form.submit();
+        }
+        // Carregar totais no rodapé
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-jurados').textContent = data.totalJurados || 0;
+                document.getElementById('total-instituicoes').textContent = data.totalInstituicoes || 0;
+            })
+            .catch(error => console.error('Erro ao carregar estatísticas:', error));
+        // Feedback visual para formulários
+        document.getElementById('backupForm').addEventListener('submit', function(e) { const btn = this.querySelector('button[type="submit"]'); btn.innerHTML = '<i class="fas fa-spinner fa-spin btn-icon"></i>Criando Backup...'; btn.disabled = true; });
+        document.getElementById('restoreForm').addEventListener('submit', function(e) { const btn = this.querySelector('button[type="submit"]'); btn.innerHTML = '<i class="fas fa-spinner fa-spin btn-icon"></i>Restaurando...'; btn.disabled = true; });
+    </script>
+</body>
+</html>

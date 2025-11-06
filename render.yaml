@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: controle-jurados
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: DB_FILENAME
+        value: /opt/render/project/src/database/controle_jurados.db
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: APP_URL
+        fromService:
+          type: web
+          name: controle-jurados
+          property: url
+    disk:
+      name: controle-jurados-data
+      mountPath: /opt/render/project/src/database
+      sizeGB: 1
+

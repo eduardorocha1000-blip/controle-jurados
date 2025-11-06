@@ -1,0 +1,1448 @@
+/* Estilos globais do Sistema de Controle de Jurados */
+
+:root {
+    --header-bg: #B9D3EE;
+    --header-text: #000000;
+}
+
+/* Estilos para campos de texto com alinhamento justificado */
+textarea[style*="text-align: justify"] {
+    text-align: justify !important;
+    line-height: 1.6;
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+}
+
+/* Estilos específicos para o campo de conteúdo do edital */
+#corpo_rtf {
+    text-align: justify !important;
+    line-height: 1.6;
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+    white-space: pre-wrap;
+}
+
+/* Estilos para o botão "Atualizar Texto" */
+#btn-atualizar-texto {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+#btn-atualizar-texto:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+#btn-atualizar-texto:active {
+    transform: translateY(0);
+}
+
+/* Reset básico */
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --header-height: 80px;
+    --footer-height: 60px;
+}
+
+/* Cabeçalho */
+.header-custom {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    padding: 0;
+    height: var(--header-height);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+}
+
+.header-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+}
+
+.header-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.header-subtitle {
+    font-size: 14px;
+    font-style: italic;
+    margin: 0;
+}
+
+/* Rodapé */
+.footer-custom {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    padding: 0;
+    height: var(--footer-height);
+    margin-top: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Layout principal */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Forçar layout correto */
+.main-container {
+    flex: 1;
+    display: flex !important;
+    min-height: 0;
+    flex-direction: row !important;
+    width: 100%;
+    height: calc(100vh - (var(--header-height) + var(--footer-height)));
+    position: relative;
+}
+
+.sidebar {
+    background-color: #f8f9fa;
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    flex-shrink: 0;
+    padding: 0;
+    overflow-y: auto;
+    border-right: 1px solid #dee2e6;
+    position: fixed;
+    left: 0;
+    top: var(--header-height);
+    bottom: var(--footer-height);
+    z-index: 1000;
+    height: calc(100vh - (var(--header-height) + var(--footer-height)));
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+    margin-left: 250px;
+    height: calc(100vh - (var(--header-height) + var(--footer-height)));
+    width: calc(100% - 250px);
+}
+
+/* Estilos para links da sidebar */
+.sidebar .nav-link {
+    color: #495057;
+    padding: 12px 20px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-size: calc(1rem - 2px); /* Diminui em 2px as opções da sidebar */
+}
+
+.sidebar .nav-link:hover {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+.sidebar .nav-link.active {
+    background-color: #007bff;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Ícones */
+.btn-icon {
+    margin-right: 8px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Títulos sem ícones - estilo padrão */
+h1, h2, h3, h4, h5, h6 {
+    display: block;
+    text-align: left;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* Formulários */
+.form-control, .form-select {
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+}
+
+.form-control:focus, .form-select:focus {
+    outline: 0;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: calc(1rem - 2px); /* Reduz 2px do tamanho padrão (16px -> 14px) */
+}
+
+/* Garantir que inputs e selects tenham altura consistente para alinhamento com botões nos filtros */
+form.row.g-3 .form-control,
+form.row.g-3 .form-select,
+.row.align-items-center .form-control,
+.card-body .row.align-items-center .form-control {
+    height: 42px !important;
+    box-sizing: border-box;
+    font-size: calc(1rem - 2px); /* Diminui em 2px o tamanho do texto dos campos */
+}
+
+/* Espaçamento consistente entre campos em todas as páginas */
+.card form .row > [class^="col-"],
+.card form .row > [class*=" col-"] {
+    margin-bottom: 12px;
+}
+
+.form-text { color: #6c757d; }
+
+/* Ações de formulário padronizadas */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Normalização de checkboxes e radios */
+.form-check { display: flex; align-items: center; gap: 8px; }
+.form-check-input { width: 1.1rem; height: 1.1rem; }
+.form-check-label { margin-bottom: 0; }
+
+/* Inputs em maiúsculas por padrão, exceto tipos específicos */
+input[type="text"],
+input[type="search"],
+textarea {
+    text-transform: uppercase;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="url"] {
+    text-transform: none;
+}
+
+/* Respeitar campos marcados para manter minúsculas */
+[data-keep-lowercase="true"] {
+    text-transform: none !important;
+}
+
+/* Estilos para cards de estatísticas – compactos, em uma linha */
+.card.card-stat, .card.h-100 {
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.card .card-body {
+    padding: 0.45rem 0.75rem;
+}
+.card .card-body .d-flex.align-items-center {
+    gap: 6px;
+}
+.card .card-body .d-flex.align-items-center .fs-5 { line-height: 1; }
+.card .card-body .d-flex.align-items-center .flex-grow-1 {
+    font-weight: 600;
+    font-size: 1rem;
+}
+.card .card-body .d-flex.align-items-center .fw-bold {
+    font-weight: 700;
+    font-size: 1rem;
+}
+.card .card-body .d-flex.align-items-center .fw-bold::before {
+    content: "" !important;
+    font-weight: 400;
+}
+
+/* Painéis (cards) padronizados para todas as páginas */
+.card { border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.18); border: 1px solid rgba(0,0,0,0.06); }
+.card-header { background: #ffffff; border-bottom: 1px solid #e9ecef; padding: 0.75rem 1rem; }
+.card-header h5, .card-header .card-title { margin: 0; font-weight: 600; }
+.card + .card { margin-top: 1rem; }
+
+/* Listas/Tabelas padronizadas */
+.table { margin-bottom: 0; }
+.table thead th { 
+    background-color: #f8f9fa; 
+    color: #495057; 
+    font-weight: 600; 
+    border-bottom: 1px solid #dee2e6; 
+    font-size: calc(1rem - 2px); /* Diminui em 2px os títulos das colunas */
+}
+.table tbody td { 
+    vertical-align: middle; 
+    font-size: calc(1rem - 2px); /* Diminui em 2px os dados das células */
+}
+.table-hover tbody tr:hover { background-color: #f6f7f9; }
+
+/* Botões e grupos de ação consistentes */
+.btn { border-radius: 8px; }
+.btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
+.btn-outline-primary { border-color: #0d6efd; color: #0d6efd; }
+.btn-outline-primary:hover { background-color: #0d6efd; color: #fff; }
+.btn-group .btn { margin-right: 6px; }
+.btn-group .btn:last-child { margin-right: 0; }
+
+/* Garantir bordas arredondadas nos botões dentro de grupos */
+.btn-group .btn-view,
+.btn-group .btn-edit,
+.btn-group .btn-delete,
+.btn-group .btn-print,
+.btn-group .btn-search,
+.btn-group .btn-filter,
+.btn-group .btn-clear {
+    border-radius: 6px !important;
+}
+
+/* Breadcrumb e títulos alinhados como Juízes */
+.breadcrumb { margin: 0; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+
+/* Espaçamento consistente de seções */
+.section { margin-bottom: 0.5rem; }
+
+/* Reduzir margens verticais genéricas acima/abaixo de blocos principais */
+.row.mb-4 { margin-bottom: 0.5rem !important; }
+.mb-4 { margin-bottom: 0.5rem !important; }
+
+/* Borda das páginas (conteúdo principal) */
+.main-content {
+    border-left: 1px solid rgba(0,0,0,0.08);
+    border-right: 1px solid rgba(0,0,0,0.08);
+}
+
+
+/* Remover etiquetas/badges anexadas aos títulos (ex.: no fim da linha do h2) */
+h2 .badge,
+h3 .badge,
+.page-header h2 .badge,
+.page-header h3 .badge,
+.title-badge,
+.page-title-badge,
+h2 small.title-badge,
+h3 small.title-badge {
+    display: none !important;
+}
+
+/* Estilos para tabelas */
+.table thead th {
+    background-color: #e9ecef;
+    color: #495057;
+    font-weight: bold;
+    font-size: calc(1rem - 2px) !important; /* Diminui em 2px os títulos das colunas */
+}
+
+.table tbody tr:hover {
+    background-color: #f2f2f2;
+}
+
+/* Diminuir tamanho dos dados nas células das tabelas */
+.table tbody td,
+.table td {
+    font-size: calc(1rem - 2px) !important; /* Diminui em 2px os dados das células */
+}
+
+/* Estilos para botões de ação na tabela */
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* Override Bootstrap conflicts */
+.container-fluid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.col-md-3, .col-lg-2 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.col-md-9, .col-lg-10 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column !important;
+        height: auto !important;
+    }
+    
+    .sidebar {
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        top: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 15px;
+    }
+}
+
+/* Debug - remover em produção */
+.main-container {
+    /* border: 2px solid red; */
+}
+
+.sidebar {
+    /* border: 2px solid blue; */
+}
+
+.main-content {
+    /* border: 2px solid green; */
+}
+
+/* Centralizar cards de estatísticas horizontalmente na página */
+.stats-cards.row {
+    justify-content: center !important;
+}
+
+/* Gutter maior para os cards de estatísticas em Relatórios */
+.stats-cards > [class*="col-"] {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+}
+.stats-cards > [class*="col-"] .card {
+    margin-left: 0.0625rem !important; /* ~1px */
+    margin-right: 0.0625rem !important;
+}
+.stats-cards > [class*="col-"]:first-child .card {
+    margin-left: 0 !important;
+}
+.stats-cards > [class*="col-"]:last-child .card {
+    margin-right: 0 !important;
+}
+
+/* Estilização padronizada de botões de ação (apenas emojis) */
+.btn-action,
+.btn-view,
+.btn-edit,
+.btn-delete,
+.btn-save,
+.btn-back,
+.btn-search,
+.btn-filter,
+.btn-clear,
+.btn-print {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    transition: all 0.2s ease;
+    border: none !important;
+    padding: 0.6rem 0.9rem !important;
+    font-size: 1.4rem !important;
+    min-width: 48px;
+    min-height: 48px;
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botão Imprimir igual ao botão Excluir */
+.btn-print,
+.btn-print.btn-sm {
+    background-color: #ffebee !important;
+    color: #c62828 !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    transition: all 0.2s ease;
+}
+
+.btn-print:hover,
+.btn-print.btn-sm:hover {
+    background-color: #ffcdd2 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+
+.btn-print:active,
+.btn-print.btn-sm:active {
+    transform: translateY(0);
+}
+.btn-action:hover,
+.btn-view:hover,
+.btn-edit:hover,
+.btn-delete:hover,
+.btn-save:hover,
+.btn-back:hover,
+.btn-search:hover,
+.btn-filter:hover,
+.btn-clear:hover,
+.btn-print:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+.btn-action:active,
+.btn-view:active,
+.btn-edit:active,
+.btn-delete:active,
+.btn-save:active,
+.btn-back:active,
+.btn-search:active,
+.btn-filter:active,
+.btn-clear:active,
+.btn-print:active {
+    transform: translateY(0);
+}
+
+/* Tamanho menor para botões sm - removido, usando regras específicas abaixo */
+
+/* Botões menores nos filtros de busca - removido, usando regras gerais com padding 4px 6px */
+
+/* Ajuste de alinhamento para botões nos filtros */
+form.row.g-3 .col-md-2.d-flex,
+form.row.g-3 .col-md-3.d-flex {
+    display: flex !important;
+    align-items: flex-end !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    justify-content: flex-end;
+}
+
+form.row.g-3 .col-md-2.d-flex .d-flex,
+form.row.g-3 .col-md-3.d-flex .d-flex {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    width: 100%;
+    align-items: flex-end;
+}
+
+/* Garantir que botões nos filtros tenham altura exata dos inputs Bootstrap */
+/* Input Bootstrap padrão: padding 0.375rem vertical + border 1px + line-height 1.5 */
+/* Mas nosso CSS customizado usa padding 0.5rem, então: 1.5em (24px) + 1rem (16px) + 2px = ~42px */
+form.row.g-3 .d-flex.gap-2 .btn {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    box-sizing: border-box !important;
+    line-height: 1.5 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.375rem 0.75rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    vertical-align: bottom !important;
+}
+
+/* Remove padding-bottom das colunas no row g-3 apenas onde há botões para alinhamento perfeito */
+form.row.g-3 .col-md-2.d-flex,
+form.row.g-3 .col-md-3.d-flex {
+    padding-bottom: 0 !important;
+}
+
+/* Garantir espaçamento uniforme entre todas as colunas dos filtros */
+form.row.g-3 > [class*="col-md-"] {
+    padding-left: calc(var(--bs-gutter-x) * 0.5) !important;
+    padding-right: calc(var(--bs-gutter-x) * 0.5) !important;
+}
+
+/* Ajuste fino: garantir que container dos botões esteja alinhado na base */
+form.row.g-3 .col-md-2.d-flex .d-flex.gap-2,
+form.row.g-3 .col-md-3.d-flex .d-flex.gap-2 {
+    align-self: flex-end !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Botão Ver/Visualizar - Azul suave */
+.btn-view,
+.btn-action.view,
+a[title="Visualizar"].btn,
+a[title="Ver"].btn {
+    background-color: #e3f2fd !important; /* Azul muito claro */
+    color: #1976d2 !important;
+}
+.btn-view:hover,
+.btn-action.view:hover,
+a[title="Visualizar"].btn:hover,
+a[title="Ver"].btn:hover {
+    background-color: #bbdefb !important;
+}
+
+/* Botão Editar - Amarelo suave */
+.btn-edit,
+.btn-action.edit,
+a[title="Editar"].btn,
+.btn-outline-warning[title="Editar"] {
+    background-color: #fff9c4 !important; /* Amarelo muito claro */
+    color: #f57f17 !important;
+    border: none !important;
+}
+.btn-edit:hover,
+.btn-action.edit:hover,
+a[title="Editar"].btn:hover,
+.btn-outline-warning[title="Editar"]:hover {
+    background-color: #fff59d !important;
+}
+
+/* Botão Excluir - Vermelho suave */
+.btn-delete,
+.btn-action.delete,
+button[title="Excluir"].btn,
+.btn-outline-danger[title="Excluir"],
+/* Botões de Controle em E-mails - Status */
+button#btnAtualizarControle,
+button#btnApagarHistorico {
+    background-color: #ffebee !important; /* Vermelho muito claro */
+    color: #c62828 !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    transition: all 0.2s ease;
+    padding: 0 !important;
+    /* Tamanho e padding removidos - usando regras gerais para botões com emoji (padding 4px 6px, font-size 14px) */
+}
+
+/* Botão Atualizar em Controle - mesmo tamanho do botão Excluir */
+button#btnAtualizarControle.btn-delete.btn-sm {
+    font-size: 14px !important;
+    padding: 4px 6px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+button#btnAtualizarControle.btn-delete.btn-sm * {
+    font-size: 14px !important;
+}
+
+/* Botão Excluir na Lista de Editais */
+table[class*="table"] tbody .btn-delete.btn-sm[onclick*="excluirEdital"] {
+    background-color: #B9D3EE !important; /* Azul claro */
+    color: #2e5c8a !important; /* Azul escuro */
+}
+
+table[class*="table"] tbody .btn-delete.btn-sm[onclick*="excluirEdital"]:hover {
+    background-color: #9bb8dc !important; /* Azul mais escuro no hover */
+}
+
+/* Botão Editar em Templates de E-mail/Confirmação */
+button.btn-edit.btn-sm[onclick*="editarTemplate"] {
+    background-color: #B9D3EE !important; /* Azul claro */
+    color: #2e5c8a !important; /* Azul escuro */
+}
+
+button.btn-edit.btn-sm[onclick*="editarTemplate"]:hover {
+    background-color: #9bb8dc !important; /* Azul mais escuro no hover */
+}
+.btn-delete:hover,
+.btn-action.delete:hover,
+button[title="Excluir"].btn:hover,
+.btn-outline-danger[title="Excluir"]:hover,
+button#btnAtualizarControle:hover,
+button#btnApagarHistorico:hover {
+    background-color: #ffcdd2 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+
+/* Botão Salvar - Verde suave */
+.btn-save,
+.btn-action.save,
+button[type="submit"]:not(.btn-delete):not(.btn-excluir),
+input[type="submit"]:not(.btn-delete) {
+    background-color: #e8f5e9 !important; /* Verde muito claro */
+    color: #2e7d32 !important;
+    border: none !important;
+}
+.btn-save:hover,
+.btn-action.save:hover,
+button[type="submit"]:not(.btn-delete):not(.btn-excluir):hover,
+input[type="submit"]:not(.btn-delete):hover {
+    background-color: #c8e6c9 !important;
+}
+
+/* Botão Voltar - Cinza suave */
+.btn-back,
+.btn-action.back {
+    background-color: #f5f5f5 !important; /* Cinza muito claro */
+    color: #616161 !important;
+}
+.btn-back:hover,
+.btn-action.back:hover {
+    background-color: #eeeeee !important;
+}
+
+/* Botão Buscar/Filtrar - Ciano suave */
+.btn-search,
+.btn-filter,
+.btn-action.search,
+.btn-action.filter,
+button[title="Filtrar"].btn,
+button[onclick*="aplicarFiltros"] {
+    background-color: #e0f7fa !important; /* Ciano muito claro */
+    color: #00838f !important;
+    border: none !important;
+}
+.btn-search:hover,
+.btn-filter:hover,
+.btn-action.search:hover,
+.btn-action.filter:hover,
+button[title="Filtrar"].btn:hover,
+button[onclick*="aplicarFiltros"]:hover {
+    background-color: #b2ebf2 !important;
+}
+
+/* Botão Limpar - Laranja suave */
+.btn-clear,
+.btn-action.clear,
+button[title="Limpar"].btn,
+button[onclick*="limpar"] {
+    background-color: #fff3e0 !important; /* Laranja muito claro */
+    color: #e65100 !important;
+    border: none !important;
+}
+.btn-clear:hover,
+.btn-action.clear:hover,
+button[title="Limpar"].btn:hover,
+button[onclick*="limpar"]:hover {
+    background-color: #ffe0b2 !important;
+}
+
+/* Botão Imprimir - Púrpura suave */
+.btn-print,
+.btn-action.print,
+button[onclick*="imprimir"],
+button[onclick*="Imprimir"] {
+    background-color: #f3e5f5 !important; /* Púrpura muito claro */
+    color: #7b1fa2 !important;
+    border: none !important;
+}
+.btn-print:hover,
+.btn-action.print:hover,
+button[onclick*="imprimir"]:hover,
+button[onclick*="Imprimir"]:hover {
+    background-color: #e1bee7 !important;
+}
+
+/* Padronização de botões de ação - apenas emojis com fundo suave e sombra */
+.btn {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    border: none !important;
+    min-width: 38px; /* garante tamanho mínimo mesmo sem texto */
+}
+
+/* Cores suaves para botões de ação */
+.btn-primary { background-color: #e3f2fd !important; color: #1976d2 !important; }
+.btn-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
+
+.btn-success { background-color: #e8f5e9 !important; color: #388e3c !important; }
+.btn-success:hover { background-color: #c8e6c9 !important; color: #1b5e20 !important; }
+
+.btn-warning { background-color: #fff3e0 !important; color: #f57c00 !important; }
+.btn-warning:hover { background-color: #ffe0b2 !important; color: #e65100 !important; }
+
+.btn-danger { background-color: #ffebee !important; color: #d32f2f !important; }
+.btn-danger:hover { background-color: #ffcdd2 !important; color: #b71c1c !important; }
+
+.btn-info { background-color: #e0f7fa !important; color: #0288d1 !important; }
+.btn-info:hover { background-color: #b2ebf2 !important; color: #01579b !important; }
+
+.btn-secondary { background-color: #f5f5f5 !important; color: #616161 !important; }
+.btn-secondary:hover { background-color: #eeeeee !important; color: #424242 !important; }
+
+.btn-outline-primary { background-color: #e3f2fd !important; color: #1976d2 !important; border: 1px solid #90caf9 !important; }
+.btn-outline-primary:hover { background-color: #bbdefb !important; color: #0d47a1 !important; }
+
+.btn-outline-warning { background-color: #fff3e0 !important; color: #f57c00 !important; border: 1px solid #ffcc80 !important; }
+.btn-outline-warning:hover { background-color: #ffe0b2 !important; color: #e65100 !important; }
+
+.btn-outline-danger { background-color: #ffebee !important; color: #d32f2f !important; border: 1px solid #ef9a9a !important; }
+.btn-outline-danger:hover { background-color: #ffcdd2 !important; color: #b71c1c !important; }
+
+.btn-outline-info { background-color: #e0f7fa !important; color: #0288d1 !important; border: 1px solid #4dd0e1 !important; }
+.btn-outline-info:hover { background-color: #b2ebf2 !important; color: #01579b !important; }
+
+.btn-outline-secondary { background-color: #f5f5f5 !important; color: #616161 !important; border: 1px solid #bdbdbd !important; }
+.btn-outline-secondary:hover { background-color: #eeeeee !important; color: #424242 !important; }
+
+/* Padronização visual dos cards de estatísticas (emoji, texto e número) */
+.stats-cards { 
+    --emoji-size: 2.5rem; /* padroniza como o card "Total" em Juízes (fs-1) */
+    --emoji-gap: 0.5rem;   /* espaço entre emoji e texto */
+    --text-size: 1.2rem;   /* tamanho do texto */
+    --number-size: 1.4rem; /* tamanho do número */
+    --number-gap-top: 0.15rem; /* espaço pequeno entre texto e número */
+}
+.stats-cards .card .card-body .d-flex {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+/* Emoji dimensionado por variável */
+.stats-cards .card .card-body .d-flex .flex-shrink-0,
+.stats-cards .card .card-body .d-flex .me-2 {
+    font-size: var(--emoji-size) !important;
+    line-height: 1;
+    margin-right: var(--emoji-gap) !important;
+}
+/* Garante que elementos internos (ex.: div com fs-5/fs-1) usem o mesmo tamanho */
+.stats-cards .card .card-body .d-flex .flex-shrink-0 > * {
+    font-size: inherit !important;
+    line-height: inherit !important;
+}
+.stats-cards .card .card-body .d-flex .fa-2x,
+.stats-cards .card .card-body .d-flex .fs-1 { 
+    font-size: var(--emoji-size) !important; 
+    line-height: 1;
+}
+/* Bloco do texto (título) e número em coluna, alinhados à esquerda */
+.stats-cards .card .card-body .d-flex .flex-grow-1 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    flex: 1 1 auto;
+}
+.stats-cards .card .card-body .d-flex .flex-grow-1,
+.stats-cards .card .card-body .card-title {
+    font-size: var(--text-size) !important;
+    font-weight: 600;
+    margin: 0;
+}
+/* Número quando está dentro do mesmo container do texto (caso Relatórios/Cédulas) */
+.stats-cards .card .card-body .d-flex .flex-grow-1 h3,
+.stats-cards .card .card-body .d-flex .flex-grow-1 h6 {
+    font-size: var(--number-size) !important;
+    font-weight: 700 !important;
+    margin: var(--number-gap-top) 0 0 0;
+}
+/* Número quando é irmão direto (caso Dashboard/algumas páginas) */
+.stats-cards .card .card-body .d-flex > .fw-bold {
+    order: 3;                 /* força ir para a linha de baixo */
+    flex-basis: 100%;
+    width: 100%;
+    text-align: left !important;
+    margin-top: var(--number-gap-top) !important;
+    margin-left: calc(var(--emoji-size) + var(--emoji-gap)) !important; /* alinha exatamente abaixo da primeira letra do texto */
+    font-size: var(--number-size) !important;
+    font-weight: 700 !important;
+}
+
+/* ============================================
+   REGRAS ESPECÍFICAS ADICIONAIS
+   ============================================ */
+
+/* Remover flex-fill do botão Filtrar para ter a mesma largura do Excluir */
+form.row.g-3 .btn-filter.flex-fill,
+.row.align-items-center .btn-filter.flex-fill,
+.btn-filter.flex-fill {
+    flex: none !important;
+    width: 48px !important;
+}
+
+/* Garantir que botão Filtrar tenha mesma largura do Excluir - removido, usando regras gerais */
+
+/* Centralizar coluna Ações nas tabelas (última coluna que geralmente contém os botões de ação) */
+table thead th:last-child,
+table tbody td:last-child {
+    text-align: center !important;
+}
+
+/* Estilos para ordenação de tabelas */
+.table thead th.sortable {
+    cursor: pointer !important;
+    user-select: none !important;
+    position: relative !important;
+    padding-right: 30px !important;
+}
+
+.table thead th.sortable:hover {
+    background-color: #e9ecef !important;
+}
+
+.table thead th.sortable::after {
+    content: ' ↕';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    font-size: 0.9em;
+    font-weight: normal;
+    pointer-events: none;
+}
+
+.table thead th.sortable.sort-asc::after {
+    content: ' ↑';
+    opacity: 1;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.table thead th.sortable.sort-desc::after {
+    content: ' ↓';
+    opacity: 1;
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Botões com apenas emoji - tamanho fixo, padding 4px 6px, emojis 14px, bordas arredondadas */
+.btn-view,
+.btn-edit,
+.btn-delete,
+.btn-print,
+.btn-search:not([href*="novo"]):not([href*="Novo"]),
+.btn-filter:not([onclick*="enviarIntimacoes"]),
+.btn-clear,
+.btn-save:not(.w-100),
+.btn-back:not(.w-100),
+button[type="submit"]:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):not(form[action*="reativar-suspensos"] button),
+.btn-outline-primary:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):not([onclick*="atualizarLista"]),
+.btn-outline-success:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]),
+.btn-outline-info:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]),
+.btn-outline-danger:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]),
+.card-body .d-grid .btn-primary:not(.w-100):not(.dropdown-item):not(.btn-outline-primary):not([href*="novo"]):not([href*="Novo"]):not([onclick*="gerarRelatorio"]),
+.card-body .d-grid .btn-success:not(.w-100):not(.dropdown-item):not(.btn-outline-success):not([href*="novo"]):not([href*="Novo"]):not([onclick*="gerarRelatorio"]),
+.card-body .d-grid .btn-info:not(.w-100):not(.dropdown-item):not(.btn-outline-info):not([href*="novo"]):not([href*="Novo"]):not([onclick*="gerarRelatorio"]) {
+    font-size: 14px !important;
+    padding: 4px 6px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Emojis dentro dos botões - tamanho fixo 14px */
+.btn-view *,
+.btn-edit *,
+.btn-delete *,
+.btn-print *,
+.btn-search:not([href*="novo"]):not([href*="Novo"]) *,
+.btn-filter:not([onclick*="enviarIntimacoes"]) *,
+.btn-clear *,
+.btn-save:not(.w-100) *,
+.btn-back:not(.w-100) *,
+button[type="submit"]:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):not(form[action*="reativar-suspensos"] button) *,
+.btn-outline-primary:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):not([onclick*="atualizarLista"]) *,
+.btn-outline-success:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]) *,
+.btn-outline-info:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]) *,
+.btn-outline-danger:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]) *,
+.card-body .d-grid .btn-primary:not(.w-100):not(.dropdown-item):not(.btn-outline-primary):not([href*="novo"]):not([href*="Novo"]):not([onclick*="gerarRelatorio"]) *,
+.card-body .d-grid .btn-success:not(.w-100):not(.dropdown-item):not(.btn-outline-success):not([href*="novo"]):not([href*="Novo"]):not([onclick*="gerarRelatorio"]) *,
+.card-body .d-grid .btn-info:not(.w-100):not(.dropdown-item):not(.btn-outline-info):not([href*="novo"]):not([href*="Novo"]):not([onclick*="gerarRelatorio"]) * {
+    font-size: 14px !important;
+}
+
+/* Botões sm com apenas emoji - mesmo tamanho e padding, bordas arredondadas */
+.btn-view.btn-sm:not(#btnAtualizarControle):not(#btnAtualizarBackup),
+.btn-edit.btn-sm:not(#formUltimoConselho .btn-edit):not(form[action="/cedulas/continuar"] .btn-edit):not(form[action*="/cedulas/continuar"] .btn-edit):not(#containerSalvarConfigBackup .btn-edit):not(#containerSalvarConfigBackup button):not(#btnSalvarConfigEmail),
+.btn-delete.btn-sm:not(#btnAtualizarControle):not(#btnApagarHistorico),
+.btn-print.btn-sm:not(#btnImprimirJuradosSorteio),
+.btn-search.btn-sm:not(.w-100),
+.btn-filter.btn-sm:not(.w-100):not([onclick*="enviarIntimacoes"]),
+.btn-clear.btn-sm,
+.btn-save.btn-sm:not(.w-100) {
+    font-size: 14px !important;
+    padding: 4px 6px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Emojis dentro dos botões sm - tamanho fixo 14px */
+.btn-view.btn-sm:not(#btnAtualizarControle):not(#btnAtualizarBackup) *,
+.btn-edit.btn-sm:not(#formUltimoConselho .btn-edit.btn-sm):not(form[action="/cedulas/continuar"] .btn-edit.btn-sm):not(form[action*="/cedulas/continuar"] .btn-edit.btn-sm):not(#containerSalvarConfigBackup .btn-edit.btn-sm):not(#containerSalvarConfigBackup button.btn-edit.btn-sm):not(#btnSalvarConfigEmail):not(#btnSalvarConfigEmail *) *,
+.btn-delete.btn-sm:not(#btnAtualizarControle):not(#btnApagarHistorico) *,
+.btn-print.btn-sm:not(#btnImprimirJuradosSorteio) *,
+.btn-search.btn-sm:not(.w-100) *,
+.btn-filter.btn-sm:not(.w-100):not([onclick*="enviarIntimacoes"]) *,
+.btn-clear.btn-sm *,
+.btn-save.btn-sm:not(.w-100) * {
+    font-size: 14px !important;
+}
+
+/* Botão Imprimir em Jurados do Sorteio - 48x48px */
+#btnImprimirJuradosSorteio.btn-print.btn-sm {
+    font-size: 48px !important;
+    padding: 0 !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+}
+
+#btnImprimirJuradosSorteio.btn-print.btn-sm * {
+    font-size: 48px !important;
+    line-height: 1 !important;
+}
+
+/* Botões com tamanho maior em Último Conselho e Cédulas (mesma estrutura do botão Salvar) */
+/* Estas regras devem vir DEPOIS das regras gerais para ter maior especificidade */
+#formUltimoConselho button.btn-edit.btn-sm,
+#formUltimoConselho .btn-edit.btn-sm,
+form[action="/cedulas/continuar"] button.btn-edit.btn-sm,
+form[action="/cedulas/continuar"] .btn-edit.btn-sm,
+form[action*="/cedulas/continuar"] button.btn-edit.btn-sm,
+form[action*="/cedulas/continuar"] .btn-edit.btn-sm,
+body form[action="/cedulas/continuar"] button[type="submit"].btn-edit.btn-sm,
+body form[action*="/cedulas/continuar"] button[type="submit"].btn-edit.btn-sm,
+#containerSalvarConfigBackup button.btn-edit.btn-sm,
+#containerSalvarConfigBackup .btn-edit.btn-sm {
+    font-size: 22px !important;
+    padding: 12px 14px !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    background-color: #B9D3EE !important; /* Azul claro */
+    color: #2e5c8a !important; /* Azul escuro */
+    border: none !important;
+}
+
+#formUltimoConselho button.btn-edit.btn-sm:hover,
+#formUltimoConselho .btn-edit.btn-sm:hover,
+form[action="/cedulas/continuar"] button.btn-edit.btn-sm:hover,
+form[action="/cedulas/continuar"] .btn-edit.btn-sm:hover,
+form[action*="/cedulas/continuar"] button.btn-edit.btn-sm:hover,
+form[action*="/cedulas/continuar"] .btn-edit.btn-sm:hover,
+body form[action="/cedulas/continuar"] button[type="submit"].btn-edit.btn-sm:hover,
+body form[action*="/cedulas/continuar"] button[type="submit"].btn-edit.btn-sm:hover,
+#containerSalvarConfigBackup button.btn-edit.btn-sm:hover,
+#containerSalvarConfigBackup .btn-edit.btn-sm:hover {
+    background-color: #9bb8dc !important; /* Azul mais escuro no hover */
+}
+
+#formUltimoConselho button.btn-edit.btn-sm *,
+#formUltimoConselho .btn-edit.btn-sm *,
+form[action="/cedulas/continuar"] button.btn-edit.btn-sm *,
+form[action="/cedulas/continuar"] .btn-edit.btn-sm *,
+form[action*="/cedulas/continuar"] button.btn-edit.btn-sm *,
+form[action*="/cedulas/continuar"] .btn-edit.btn-sm *,
+body form[action="/cedulas/continuar"] button[type="submit"].btn-edit.btn-sm *,
+body form[action*="/cedulas/continuar"] button[type="submit"].btn-edit.btn-sm *,
+#containerSalvarConfigBackup button.btn-edit.btn-sm *,
+#containerSalvarConfigBackup .btn-edit.btn-sm * {
+    font-size: 22px !important;
+}
+
+#containerSalvarConfigBackup button.btn-edit.btn-sm:hover,
+#containerSalvarConfigBackup .btn-edit.btn-sm:hover {
+    background-color: #fff59d !important; /* Amarelo mais escuro no hover - mesma cor do botão em Último Conselho */
+}
+
+/* Botões Salvar/Gravar e Voltar dos formulários de cadastro - mesmo tamanho do botão Salvar em Último Conselho */
+/* Formulários: Juízes, Instituições, Jurados, Indicações, Sorteios, Editais, Usuários */
+/* Usando seletores mais específicos para sobrescrever as regras gerais de .btn-save e .btn-back */
+/* Estas regras DEVEM vir DEPOIS das regras gerais para ter prioridade */
+form[action*="/juizes"] button[type="submit"].btn-primary,
+form[action*="/juizes"] button[type="submit"].btn.btn-primary,
+form[action*="/juizes"] button[type="submit"].btn-save.btn,
+form[action*="/juizes"] button[type="submit"].btn.btn-save,
+form[action*="/instituicoes"] button[type="submit"].btn-save.btn,
+form[action*="/instituicoes"] button[type="submit"].btn.btn-save,
+form[action*="/jurados"] button[type="submit"].btn-save.btn,
+form[action*="/jurados"] button[type="submit"].btn.btn-save,
+form[action*="/indicacoes"] button[type="submit"].btn-save.btn,
+form[action*="/indicacoes"] button[type="submit"].btn.btn-save,
+form[action*="/sorteios"] button[type="submit"].btn-save.btn,
+form[action*="/sorteios"] button[type="submit"].btn.btn-save,
+form[action*="/editais"] button[type="submit"].btn-save.btn,
+form[action*="/editais"] button[type="submit"].btn.btn-save,
+form[action*="/usuarios"] button[type="submit"].btn-save.btn,
+form[action*="/usuarios"] button[type="submit"].btn.btn-save,
+body form[action*="/juizes"] button[type="submit"].btn-primary,
+body form[action*="/juizes"] button[type="submit"].btn.btn-primary,
+body form[action*="/instituicoes"] button[type="submit"].btn-save,
+body form[action*="/instituicoes"] button[type="submit"].btn.btn-save,
+body form[action*="/jurados"] button[type="submit"].btn-save,
+body form[action*="/jurados"] button[type="submit"].btn.btn-save,
+body form[action*="/indicacoes"] button[type="submit"].btn-save,
+body form[action*="/indicacoes"] button[type="submit"].btn.btn-save,
+body form[action*="/sorteios"] button[type="submit"].btn-save,
+body form[action*="/sorteios"] button[type="submit"].btn.btn-save,
+body form[action*="/editais"] button[type="submit"].btn-save,
+body form[action*="/editais"] button[type="submit"].btn.btn-save,
+body form[action*="/usuarios"] button[type="submit"].btn-save,
+body form[action*="/usuarios"] button[type="submit"].btn.btn-save,
+a[href*="/juizes"].btn-secondary.btn,
+a[href*="/instituicoes"].btn-back.btn,
+a[href*="/jurados"].btn-back.btn,
+a[href*="/indicacoes"].btn-back.btn,
+a[href*="/sorteios"].btn-back.btn,
+a[href*="/editais"].btn-back.btn,
+a[href*="/usuarios"].btn-back.btn,
+body a[href*="/juizes"].btn-secondary,
+body a[href*="/instituicoes"].btn-back,
+body a[href*="/jurados"].btn-back,
+body a[href*="/indicacoes"].btn-back,
+body a[href*="/sorteios"].btn-back,
+body a[href*="/editais"].btn-back,
+body a[href*="/usuarios"].btn-back,
+/* Seletores adicionais para garantir que todas as variações sejam capturadas */
+.card-body form[action*="/juizes"] button[type="submit"].btn-primary,
+.card-body form[action*="/juizes"] button[type="submit"].btn.btn-primary,
+.card-body form[action*="/instituicoes"] button[type="submit"].btn-save,
+.card-body form[action*="/instituicoes"] button[type="submit"].btn.btn-save,
+.card-body form[action*="/jurados"] button[type="submit"].btn-save,
+.card-body form[action*="/jurados"] button[type="submit"].btn.btn-save,
+.card-body form[action*="/indicacoes"] button[type="submit"].btn-save,
+.card-body form[action*="/indicacoes"] button[type="submit"].btn.btn-save,
+.card-body form[action*="/sorteios"] button[type="submit"].btn-save,
+.card-body form[action*="/sorteios"] button[type="submit"].btn.btn-save,
+.card-body form[action*="/editais"] button[type="submit"].btn-save,
+.card-body form[action*="/editais"] button[type="submit"].btn.btn-save,
+.card-body form[action*="/usuarios"] button[type="submit"].btn-save,
+.card-body form[action*="/usuarios"] button[type="submit"].btn.btn-save,
+.card-body a[href*="/juizes"].btn-secondary,
+.card-body a[href*="/instituicoes"].btn-back,
+.card-body a[href*="/jurados"].btn-back,
+.card-body a[href*="/indicacoes"].btn-back,
+.card-body a[href*="/sorteios"].btn-back,
+.card-body a[href*="/editais"].btn-back,
+.card-body a[href*="/usuarios"].btn-back,
+body a[href*="/juizes"].btn-secondary,
+body a[href*="/instituicoes"].btn-back,
+body a[href*="/jurados"].btn-back,
+body a[href*="/indicacoes"].btn-back,
+body a[href*="/sorteios"].btn-back,
+body a[href*="/editais"].btn-back,
+body a[href*="/usuarios"].btn-back,
+/* Seletores alternativos sem action específico */
+button[type="submit"].btn-primary[title="Salvar"]:not(.btn-sm):not(.btn-lg),
+button[type="submit"].btn-save:not(.btn-sm):not(.btn-lg),
+a.btn-secondary[title="Voltar"]:not(.btn-sm):not(.btn-lg),
+a.btn-back[title="Voltar"]:not(.btn-sm):not(.btn-lg) {
+    font-size: 22px !important;
+    padding: 12px 14px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    background-color: #CAE1FF !important;
+    color: #2e5c8a !important;
+    border: none !important;
+}
+
+form[action*="/juizes"] button[type="submit"].btn-primary *,
+form[action*="/juizes"] button[type="submit"].btn.btn-primary *,
+form[action*="/juizes"] button[type="submit"].btn-save *,
+form[action*="/instituicoes"] button[type="submit"].btn-save *,
+form[action*="/jurados"] button[type="submit"].btn-save *,
+form[action*="/indicacoes"] button[type="submit"].btn-save *,
+form[action*="/sorteios"] button[type="submit"].btn-save *,
+form[action*="/editais"] button[type="submit"].btn-save *,
+form[action*="/usuarios"] button[type="submit"].btn-save *,
+body form[action*="/juizes"] button[type="submit"].btn-primary *,
+body form[action*="/juizes"] button[type="submit"].btn.btn-primary *,
+body form[action*="/instituicoes"] button[type="submit"].btn-save *,
+body form[action*="/jurados"] button[type="submit"].btn-save *,
+body form[action*="/indicacoes"] button[type="submit"].btn-save *,
+body form[action*="/sorteios"] button[type="submit"].btn-save *,
+body form[action*="/editais"] button[type="submit"].btn-save *,
+body form[action*="/usuarios"] button[type="submit"].btn-save *,
+a[href*="/juizes"].btn-secondary *,
+a[href*="/instituicoes"].btn-back *,
+a[href*="/jurados"].btn-back *,
+a[href*="/indicacoes"].btn-back *,
+a[href*="/sorteios"].btn-back *,
+a[href*="/editais"].btn-back *,
+a[href*="/usuarios"].btn-back *,
+body a[href*="/juizes"].btn-secondary *,
+body a[href*="/instituicoes"].btn-back *,
+body a[href*="/jurados"].btn-back *,
+body a[href*="/indicacoes"].btn-back *,
+body a[href*="/sorteios"].btn-back *,
+body a[href*="/editais"].btn-back *,
+body a[href*="/usuarios"].btn-back *,
+/* Seletores adicionais para emojis/texto */
+.card-body form[action*="/juizes"] button[type="submit"].btn-primary *,
+.card-body form[action*="/juizes"] button[type="submit"].btn.btn-primary *,
+.card-body form[action*="/instituicoes"] button[type="submit"].btn-save *,
+.card-body form[action*="/instituicoes"] button[type="submit"].btn.btn-save *,
+.card-body form[action*="/jurados"] button[type="submit"].btn-save *,
+.card-body form[action*="/jurados"] button[type="submit"].btn.btn-save *,
+.card-body form[action*="/indicacoes"] button[type="submit"].btn-save *,
+.card-body form[action*="/indicacoes"] button[type="submit"].btn.btn-save *,
+.card-body form[action*="/sorteios"] button[type="submit"].btn-save *,
+.card-body form[action*="/sorteios"] button[type="submit"].btn.btn-save *,
+.card-body form[action*="/editais"] button[type="submit"].btn-save *,
+.card-body form[action*="/editais"] button[type="submit"].btn.btn-save *,
+.card-body form[action*="/usuarios"] button[type="submit"].btn-save *,
+.card-body form[action*="/usuarios"] button[type="submit"].btn.btn-save *,
+.card-body a[href*="/juizes"].btn-secondary *,
+.card-body a[href*="/instituicoes"].btn-back *,
+.card-body a[href*="/jurados"].btn-back *,
+.card-body a[href*="/indicacoes"].btn-back *,
+.card-body a[href*="/sorteios"].btn-back *,
+.card-body a[href*="/editais"].btn-back *,
+.card-body a[href*="/usuarios"].btn-back * {
+    font-size: 22px !important;
+}
+
+/* Botão Salvar Configurações de E-mail - igual ao botão Enviar Recebimentos */
+/* Regra com máxima especificidade para garantir que sobrescreva todas as outras */
+#configForm #btnSalvarConfigEmail.btn-primary.btn-sm,
+#configForm button#btnSalvarConfigEmail.btn-primary.btn-sm,
+#configForm button[type="submit"]#btnSalvarConfigEmail.btn-primary.btn-sm,
+#configForm button[type="submit"].btn-primary.btn-sm#btnSalvarConfigEmail {
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    padding: 0.5rem 0.75rem !important; /* Mesmo padding do botão Enviar Intimações (padrão Bootstrap btn-primary) */
+    min-width: auto !important;
+    min-height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    background-color: #BCD2EE !important; /* Mesma cor do botão Enviar Recebimentos */
+    border-color: #BCD2EE !important;
+    color: #2e5c8a !important; /* Azul escuro para contraste */
+    border: none !important;
+}
+
+#configForm #btnSalvarConfigEmail.btn-primary.btn-sm:hover,
+#configForm button#btnSalvarConfigEmail.btn-primary.btn-sm:hover,
+#configForm button[type="submit"]#btnSalvarConfigEmail.btn-primary.btn-sm:hover,
+#configForm button[type="submit"].btn-primary.btn-sm#btnSalvarConfigEmail:hover {
+    background-color: #9bb8dc !important; /* Azul mais escuro no hover */
+    border-color: #9bb8dc !important;
+    color: #2e5c8a !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+}
+
+/* Botão Enviar Recebimentos - mesma estrutura do botão Enviar Intimações, mas com cor de fundo #BCD2EE */
+#btnEnviarRecebimentos.btn-primary {
+    background-color: #BCD2EE !important;
+    border-color: #BCD2EE !important;
+    color: #2e5c8a !important; /* Azul escuro para contraste */
+}
+
+#btnEnviarRecebimentos.btn-primary:hover {
+    background-color: #9bb8dc !important; /* Azul mais escuro no hover */
+    border-color: #9bb8dc !important;
+    color: #2e5c8a !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+}
+
+/* Botões Enviar Intimações e Enviar Recebimentos - mesma largura e mesmo tipo/tamanho de texto */
+#intimacaoForm button[type="submit"].btn-primary,
+#intimacaoForm #btnEnviarRecebimentos.btn-primary {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+}
+
+/* Efeito hover com elevação e sombra em todos os botões com apenas emoji */
+.btn-view:hover,
+.btn-edit:hover,
+.btn-delete:hover,
+.btn-print:hover,
+.btn-search:not([href*="novo"]):not([href*="Novo"]):hover,
+.btn-filter:not([onclick*="enviarIntimacoes"]):hover,
+.btn-clear:hover,
+.btn-save:not(.w-100):hover,
+.btn-back:not(.w-100):hover,
+button[type="submit"]:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):not(form[action*="reativar-suspensos"] button):hover,
+.btn-outline-primary:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):not([onclick*="atualizarLista"]):hover,
+.btn-outline-success:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):hover,
+.btn-outline-info:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):hover,
+.btn-outline-danger:not(.w-100):not(.dropdown-item):not([id*="Enviar"]):not([onclick*="enviar"]):hover,
+.card-body .d-grid .btn-primary:not(.w-100):not(.dropdown-item):not(.btn-outline-primary):not([href*="novo"]):not([href*="Novo"]):hover,
+.card-body .d-grid .btn-success:not(.w-100):not(.dropdown-item):not(.btn-outline-success):not([href*="novo"]):not([href*="Novo"]):hover,
+.card-body .d-grid .btn-info:not(.w-100):not(.dropdown-item):not(.btn-outline-info):not([href*="novo"]):not([href*="Novo"]):hover,
+.btn-view.btn-sm:not(#btnAtualizarControle):hover,
+.btn-edit.btn-sm:hover,
+.btn-delete.btn-sm:not(#btnAtualizarControle):not(#btnApagarHistorico):hover,
+.btn-print.btn-sm:hover,
+.btn-search.btn-sm:not(.w-100):hover,
+.btn-filter.btn-sm:not(.w-100):not([onclick*="enviarIntimacoes"]):hover,
+.btn-clear.btn-sm:hover,
+.btn-save.btn-sm:not(.w-100):hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+}
+
+/* Hover do botão Imprimir em Jurados do Sorteio */
+#btnImprimirJuradosSorteio.btn-print.btn-sm:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+}
+
+/* ========================================================================
+   REGRAS ESPECÍFICAS PARA BOTÕES SALVAR/GRAVAR E VOLTAR DOS FORMULÁRIOS
+   DE CADASTRO - DEVEM VIR NO FINAL DO ARQUIVO PARA TER MÁXIMA PRIORIDADE
+   ======================================================================== */
+/* Sobrescrevendo completamente as regras gerais de .btn-save e .btn-back */
+/* para os botões dos formulários de cadastro (Juízes, Instituições, Jurados, Indicações, Sorteios, Editais, Usuários) */
+/* Tamanho igual ao botão Salvar em Último Conselho: 22px font-size, 12px 14px padding */
+body .card-body form[action*="/juizes"] button[type="submit"].btn-primary,
+body .card-body form[action*="/juizes"] button[type="submit"].btn.btn-primary,
+body .card-body form[action*="/instituicoes"] button[type="submit"].btn-save,
+body .card-body form[action*="/instituicoes"] button[type="submit"].btn.btn-save,
+body .card-body form[action*="/jurados"] button[type="submit"].btn-save,
+body .card-body form[action*="/jurados"] button[type="submit"].btn.btn-save,
+body .card-body form[action*="/indicacoes"] button[type="submit"].btn-save,
+body .card-body form[action*="/indicacoes"] button[type="submit"].btn.btn-save,
+body .card-body form[action*="/sorteios"] button[type="submit"].btn-save,
+body .card-body form[action*="/sorteios"] button[type="submit"].btn.btn-save,
+body .card-body form[action*="/editais"] button[type="submit"].btn-save,
+body .card-body form[action*="/editais"] button[type="submit"].btn.btn-save,
+body .card-body form[action*="/usuarios"] button[type="submit"].btn-save,
+body .card-body form[action*="/usuarios"] button[type="submit"].btn.btn-save,
+body form[action*="/juizes"] button[type="submit"].btn-primary,
+body form[action*="/juizes"] button[type="submit"].btn.btn-primary,
+body form[action*="/instituicoes"] button[type="submit"].btn-save,
+body form[action*="/instituicoes"] button[type="submit"].btn.btn-save,
+body form[action*="/jurados"] button[type="submit"].btn-save,
+body form[action*="/jurados"] button[type="submit"].btn.btn-save,
+body form[action*="/indicacoes"] button[type="submit"].btn-save,
+body form[action*="/indicacoes"] button[type="submit"].btn.btn-save,
+body form[action*="/sorteios"] button[type="submit"].btn-save,
+body form[action*="/sorteios"] button[type="submit"].btn.btn-save,
+body form[action*="/editais"] button[type="submit"].btn-save,
+body form[action*="/editais"] button[type="submit"].btn.btn-save,
+body form[action*="/usuarios"] button[type="submit"].btn-save,
+body form[action*="/usuarios"] button[type="submit"].btn.btn-save,
+body .card-body a[href*="/juizes"].btn-secondary,
+body .card-body a[href*="/instituicoes"].btn-back,
+body .card-body a[href*="/jurados"].btn-back,
+body .card-body a[href*="/indicacoes"].btn-back,
+body .card-body a[href*="/sorteios"].btn-back,
+body .card-body a[href*="/editais"].btn-back,
+body .card-body a[href*="/usuarios"].btn-back,
+body a[href*="/juizes"].btn-secondary,
+body a[href*="/instituicoes"].btn-back,
+body a[href*="/jurados"].btn-back,
+body a[href*="/indicacoes"].btn-back,
+body a[href*="/sorteios"].btn-back,
+body a[href*="/editais"].btn-back,
+body a[href*="/usuarios"].btn-back {
+    font-size: 22px !important;
+    padding: 12px 14px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    background-color: #CAE1FF !important;
+    color: #2e5c8a !important;
+    border: none !important;
+}
+
+body .card-body form[action*="/juizes"] button[type="submit"].btn-primary *,
+body .card-body form[action*="/juizes"] button[type="submit"].btn.btn-primary *,
+body .card-body form[action*="/instituicoes"] button[type="submit"].btn-save *,
+body .card-body form[action*="/instituicoes"] button[type="submit"].btn.btn-save *,
+body .card-body form[action*="/jurados"] button[type="submit"].btn-save *,
+body .card-body form[action*="/jurados"] button[type="submit"].btn.btn-save *,
+body .card-body form[action*="/indicacoes"] button[type="submit"].btn-save *,
+body .card-body form[action*="/indicacoes"] button[type="submit"].btn.btn-save *,
+body .card-body form[action*="/sorteios"] button[type="submit"].btn-save *,
+body .card-body form[action*="/sorteios"] button[type="submit"].btn.btn-save *,
+body .card-body form[action*="/editais"] button[type="submit"].btn-save *,
+body .card-body form[action*="/editais"] button[type="submit"].btn.btn-save *,
+body .card-body form[action*="/usuarios"] button[type="submit"].btn-save *,
+body .card-body form[action*="/usuarios"] button[type="submit"].btn.btn-save *,
+body form[action*="/juizes"] button[type="submit"].btn-primary *,
+body form[action*="/juizes"] button[type="submit"].btn.btn-primary *,
+body form[action*="/instituicoes"] button[type="submit"].btn-save *,
+body form[action*="/instituicoes"] button[type="submit"].btn.btn-save *,
+body form[action*="/jurados"] button[type="submit"].btn-save *,
+body form[action*="/jurados"] button[type="submit"].btn.btn-save *,
+body form[action*="/indicacoes"] button[type="submit"].btn-save *,
+body form[action*="/indicacoes"] button[type="submit"].btn.btn-save *,
+body form[action*="/sorteios"] button[type="submit"].btn-save *,
+body form[action*="/sorteios"] button[type="submit"].btn.btn-save *,
+body form[action*="/editais"] button[type="submit"].btn-save *,
+body form[action*="/editais"] button[type="submit"].btn.btn-save *,
+body form[action*="/usuarios"] button[type="submit"].btn-save *,
+body form[action*="/usuarios"] button[type="submit"].btn.btn-save *,
+body .card-body a[href*="/juizes"].btn-secondary *,
+body .card-body a[href*="/instituicoes"].btn-back *,
+body .card-body a[href*="/jurados"].btn-back *,
+body .card-body a[href*="/indicacoes"].btn-back *,
+body .card-body a[href*="/sorteios"].btn-back *,
+body .card-body a[href*="/editais"].btn-back *,
+body .card-body a[href*="/usuarios"].btn-back *,
+body a[href*="/juizes"].btn-secondary *,
+body a[href*="/instituicoes"].btn-back *,
+body a[href*="/jurados"].btn-back *,
+body a[href*="/indicacoes"].btn-back *,
+body a[href*="/sorteios"].btn-back *,
+body a[href*="/editais"].btn-back *,
+body a[href*="/usuarios"].btn-back * {
+    font-size: 22px !important;
+    line-height: 1 !important;
+}

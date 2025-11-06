@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        :root { --dash-header: 110px; --dash-footer: 60px; }
+        body { height: 100vh; overflow: hidden; }
+        .dashboard-scroll { height: calc(100vh - (var(--dash-header) + var(--dash-footer))); overflow-y: auto; }
+        @media (max-width: 768px) { .dashboard-scroll { height: auto; overflow: auto; } }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo" id="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            👤 <%= user.nome %>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/login/logout" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        🚪 Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container dashboard-scroll" style="height: 604px; overflow-y: auto; flex: 1;">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">📊 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juizes">⚖️ Juízes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instituicoes">🏢 Instituições</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/jurados">👥 Jurados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/indicacoes">📋 Indicações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sorteios">🎲 Sorteios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ultimo-conselho">🙋 Último Conselho</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cedulas">🎫 Cédulas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editais">📄 Editais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/emails">📧 E-mails</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/relatorios">📈 Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backup">💾 Backup</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/usuarios"><i class="fas fa-user-cog btn-icon"></i>Usuários</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <% if (typeof flash !== 'undefined' && flash) { %>
+                    <% if (flash.success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= flash.success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (flash.error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= flash.error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle btn-icon"></i><%= error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2>Dashboard</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagens -->
+                <% if (typeof flash !== 'undefined' && flash) { %>
+                    <% if (flash.success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= flash.success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (flash.error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= flash.error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ <%= error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                <!-- Cards de Estatísticas -->
+                <div class="row mb-4 stats-cards">
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-primary fs-5">👥</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Jurados</h5>
+                                        <h3 class="mb-0"><%= totalJurados %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-success fs-5">🟢</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Ativos</h5>
+                                        <h3 class="mb-0"><%= juradosAtivos %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-danger fs-5">🔴</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Inativos</h5>
+                                        <h3 class="mb-0"><%= juradosInativos %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-info fs-5">🏢</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Instituições</h5>
+                                        <h3 class="mb-0"><%= totalInstituicoes %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- População -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">População</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="col-auto">
+                                        <input type="number" inputmode="numeric" step="1" min="0" class="form-control" id="populacaoInput" placeholder="População (somente números)">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div id="populacaoRegra" class="text-muted"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações Rápidas -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-bolt btn-icon"></i>Ações Rápidas
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                                    <a href="/jurados/novo" class="btn btn-outline-primary">👤➕ Novo Jurado</a>
+                                    <a href="/sorteios/novo" class="btn btn-outline-primary">🎲 Novo Sorteio</a>
+                                    <a href="/ultimo-conselho" class="btn btn-outline-primary">🙋 Último Conselho</a>
+                                    <a href="/instituicoes/novo" class="btn btn-outline-primary">🏢 Nova Instituição</a>
+                                    <a href="/juizes/novo" class="btn btn-outline-primary">🧑‍⚖️ Novo Juiz</a>
+                                    <a href="/backup" class="btn btn-outline-primary">💾 Backup</a>
+                                    <a href="/relatorios" class="btn btn-outline-primary">📈 Relatórios</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <!-- Último Edital -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-file-alt btn-icon"></i>Último Edital
+                                    </h5>
+                                    <% if (ultimoEdital) { %>
+                                    <a href="/editais/<%= ultimoEdital.id %>" class="btn btn-view btn-sm">👁️</a>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <% if (ultimoEdital) { %>
+                                <h6><%= ultimoEdital.titulo %></h6>
+                                <p class="text-muted mb-2">Número: <%= ultimoEdital.numero %></p>
+                                <p class="text-muted mb-2">Ano: <%= ultimoEdital.ano_referencia %></p>
+                                <p class="text-muted mb-0">Criado em: <%= new Date(ultimoEdital.created_at).toLocaleDateString('pt-BR') %></p>
+                                <% } else { %>
+                                <p class="text-muted">Nenhum edital cadastrado ainda.</p>
+                                <a href="/editais/novo" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus btn-icon"></i>Criar Primeiro Edital
+                                </a>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Próximos Sorteios -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-alt btn-icon"></i>Próximos Sorteios
+                                </h5>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <% if (proximosSorteios && proximosSorteios.length > 0) { %>
+                                <div class="list-group list-group-flush flex-grow-1">
+                                    <% proximosSorteios.forEach(sorteio => { %>
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1"><%= new Date(sorteio.data_juri).toLocaleDateString('pt-BR') %></h6>
+                                                <small class="text-muted"><%= sorteio.hora_juri %></small>
+                                            </div>
+                                            <a href="/sorteios/<%= sorteio.id %>" class="btn btn-view btn-sm" title="Ver">👁️</a>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="flex-grow-1 d-flex flex-column justify-content-center">
+                                    <p class="text-muted">Nenhum sorteio agendado.</p>
+                                    <a href="/sorteios/novo" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-plus btn-icon"></i>Criar Sorteio
+                                    </a>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Máscaras para campos
+        document.addEventListener('DOMContentLoaded', function() {
+            // Máscara CPF
+            const cpfInputs = document.querySelectorAll('input[name="cpf"]');
+            cpfInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    e.target.value = value;
+                });
+            });
+
+            // Máscara telefone
+            const telefoneInputs = document.querySelectorAll('input[name="telefone"], input[name="contato_telefone"]');
+            telefoneInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                    e.target.value = value;
+                });
+            });
+
+            // Máscara CNPJ
+            const cnpjInputs = document.querySelectorAll('input[name="cnpj"]');
+            cnpjInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(\d{2})(\d)/, '$1.$2');
+                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                    value = value.replace(/(\d{3})(\d)/, '$1/$2');
+                    value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+                    e.target.value = value;
+                });
+            });
+
+            // Máscara CEP
+            const cepInputs = document.querySelectorAll('input[name="cep"]');
+            cepInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                    e.target.value = value;
+                });
+            });
+
+            // Converter campos para maiúsculo (exceto email, senha, telefone, etc.)
+            const textInputs = document.querySelectorAll('input[type="text"]:not([name*="email"]):not([name*="senha"]):not([name*="password"]):not([name*="telefone"]):not([name*="cpf"]):not([name*="cnpj"]):not([name*="cep"])');
+            textInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    e.target.value = e.target.value.toUpperCase();
+                });
+            });
+
+            // Carregar totais no rodapé
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados || 0;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes || 0;
+                })
+                .catch(error => console.error('Erro ao carregar estatísticas:', error));
+        });
+
+        // Upload de logo do cabeçalho
+        document.getElementById('header-logo').addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('header-logo').src = e.target.result;
+                        // Salvar no localStorage
+                        localStorage.setItem('header-logo', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        });
+
+        // Carregar logo salvo
+        const savedLogo = localStorage.getItem('header-logo');
+        if (savedLogo) {
+            document.getElementById('header-logo').src = savedLogo;
+        }
+
+        // Regras de População
+        (function(){
+            const input = document.getElementById('populacaoInput');
+            const regra = document.getElementById('populacaoRegra');
+            if (!input || !regra) return;
+            function atualizar() {
+                const val = parseInt(input.value, 10);
+                if (Number.isNaN(val)) { regra.textContent = ''; return; }
+                if (val > 1000000) {
+                    regra.textContent = 'Devem ser alistado de 800 a 1.500 jurados';
+                } else if (val > 100000) {
+                    regra.textContent = 'Devem ser alistado de 300 a 700 jurados';
+                } else {
+                    regra.textContent = 'Devem ser alistado de 80 a 400 jurados';
+                }
+                localStorage.setItem('dashboard-populacao', String(val));
+            }
+            input.addEventListener('input', atualizar);
+            // Carregar valor persistido
+            const salvo = localStorage.getItem('dashboard-populacao');
+            if (salvo) {
+                input.value = salvo;
+                atualizar();
+            }
+            // Tentar preencher automaticamente via IBGE
+            try {
+                fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?nome=Capivari%20de%20Baixo')
+                    .then(r => r.json())
+                    .then(list => {
+                        if (Array.isArray(list) && list.length > 0) {
+                            const id = list[0].id;
+                            return fetch(`https://servicodados.ibge.gov.br/api/v1/projecoes/populacao/${id}`);
+                        }
+                        return null;
+                    })
+                    .then(r => r ? r.json() : null)
+                    .then(data => {
+                        if (data && data.projecao && data.projecao.populacao) {
+                            const val = parseInt(data.projecao.populacao, 10);
+                            if (!Number.isNaN(val)) {
+                                input.value = val;
+                                atualizar();
+                            }
+                        }
+                    })
+                    .catch(() => {});
+            } catch (_) {}
+        })();
+    </script>
+</body>
+</html>

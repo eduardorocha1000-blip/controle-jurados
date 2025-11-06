@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <header class="header-custom">
+    <div class="container"><h1 class="header-title">Definir Nova Senha</h1></div>
+  </header>
+  <main class="main-content d-flex align-items-center" style="min-height: 60vh;">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card shadow">
+            <div class="card-header"><strong>Redefinir senha</strong></div>
+            <div class="card-body">
+              <% if (messages && messages.error && messages.error.length) { %>
+                <div class="alert alert-danger"><%= messages.error[0] %></div>
+              <% } %>
+              <% if (typeof errors !== 'undefined' && errors && errors.length) { %>
+                <div class="alert alert-danger">
+                  <ul class="mb-0">
+                    <% errors.forEach(e => { %>
+                      <li><%= e.msg %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+              <% } %>
+              <form method="POST" action="/login/redefinir/<%= token %>">
+                <div class="mb-3">
+                  <label class="form-label">Nova senha</label>
+                  <input type="password" class="form-control" name="senha" minlength="6" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Confirmar senha</label>
+                  <input type="password" class="form-control" name="confirmar" minlength="6" required>
+                </div>
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary" title="Salvar nova senha">💾</button>
+                  <a href="/login" class="btn btn-secondary" title="Voltar ao login">⬅️</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

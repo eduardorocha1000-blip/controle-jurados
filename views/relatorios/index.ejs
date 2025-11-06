@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body { height: 100vh; overflow: hidden; }
+        .relatorios-scroll { height: calc(100vh - (var(--header-height) + var(--footer-height))); overflow-y: auto; }
+        @media (max-width: 768px) { body { overflow: auto; height: auto; } .relatorios-scroll { height: auto; } }
+        
+        /* Tamanho dos emojis+textos dos botões nos relatórios - 24px */
+        /* Regras com máxima especificidade para garantir que sobrescrevam as regras gerais */
+        .card-body .d-grid .btn-primary,
+        .card-body .d-grid .btn-success,
+        .card-body .d-grid .btn-info,
+        div.card-body .d-grid .btn-primary,
+        div.card-body .d-grid .btn-success,
+        div.card-body .d-grid .btn-info {
+            font-size: 24px !important;
+            line-height: 1 !important;
+            padding: 0.75rem 1rem !important;
+        }
+        
+        /* Aplicar tamanho aos elementos filhos e ao próprio botão (para emojis diretamente no botão) */
+        .card-body .d-grid .btn-primary,
+        .card-body .d-grid .btn-success,
+        .card-body .d-grid .btn-info,
+        .card-body .d-grid .btn-primary *,
+        .card-body .d-grid .btn-success *,
+        .card-body .d-grid .btn-info *,
+        div.card-body .d-grid .btn-primary,
+        div.card-body .d-grid .btn-success,
+        div.card-body .d-grid .btn-info,
+        div.card-body .d-grid .btn-primary *,
+        div.card-body .d-grid .btn-success *,
+        div.card-body .d-grid .btn-info * {
+            font-size: 24px !important;
+            line-height: 1 !important;
+        }
+        
+        /* Botão Gerar Relatório Personalizado - mesma estrutura, modelo e tamanhos dos botões dos relatórios */
+        button.btn-primary[onclick*="gerarRelatorioPersonalizado"],
+        button.btn-primary[onclick="gerarRelatorioPersonalizado()"] {
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+            padding: 0.5rem 0.75rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        button.btn-primary[onclick*="gerarRelatorioPersonalizado"]:hover,
+        button.btn-primary[onclick="gerarRelatorioPersonalizado()"]:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25) !important;
+        }
+        
+        button.btn-primary[onclick*="gerarRelatorioPersonalizado"] *,
+        button.btn-primary[onclick="gerarRelatorioPersonalizado()"] * {
+            font-size: inherit !important;
+            line-height: inherit !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            👤 <%= user.nome %>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/login/logout" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        🚪 Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container" style="height: 604px; overflow-y: auto; flex: 1;">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/juizes">⚖️ Juízes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instituicoes">🏢 Instituições</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/jurados">👥 Jurados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/indicacoes">📋 Indicações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sorteios">🎲 Sorteios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ultimo-conselho">🙋 Último Conselho</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cedulas">🎫 Cédulas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editais">📄 Editais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/emails">📧 E-mails</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/relatorios">📈 Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backup">💾 Backup</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/usuarios"><i class="fas fa-user-cog btn-icon"></i>Usuários</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2>Relatórios e Estatísticas</h2>
+                                <p class="text-muted mb-0">Geração de relatórios e visualização de estatísticas do sistema</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagens -->
+                <% if (typeof messages !== 'undefined' && messages) { %>
+                    <% if (messages.success && messages.success.length > 0) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= messages.success[0] %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (messages.error && messages.error.length > 0) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= messages.error[0] %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <!-- Estatísticas Gerais -->
+                <div class="row mb-4 g-5 stats-cards">
+                    <div class="col-md-3 mb-0">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-primary fs-1">📊</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Total Jurados</h5>
+                                        <h3 class="mb-0"><%= typeof totalJurados !== 'undefined' ? totalJurados : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-0">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-success fs-1">🏢</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Instituições</h5>
+                                        <h3 class="mb-0"><%= typeof totalInstituicoes !== 'undefined' ? totalInstituicoes : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-0">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-warning fs-1">🎲</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Sorteios</h5>
+                                        <h3 class="mb-0"><%= typeof totalSorteios !== 'undefined' ? totalSorteios : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-0">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-info fs-1">📄</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Editais</h5>
+                                        <h3 class="mb-0"><%= typeof totalEditais !== 'undefined' ? totalEditais : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form id="filtrosForm">
+                            <div class="row">
+                                <div class="col-md-auto">
+                                    <label for="anoReferencia" class="form-label">Ano de Referência</label>
+                                    <select class="form-select" id="anoReferencia" name="ano" style="width: 20ch;">
+                                        <option value="">Todos os anos</option>
+                                        <% const anoAtualRel = new Date().getFullYear(); for(let ano = anoAtualRel + 1; ano >= 2020; ano--) { %>
+                                            <option value="<%= ano %>" <%= typeof filtros !== 'undefined' && filtros.ano == ano ? 'selected' : '' %>><%= ano %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="col-md-auto">
+                                    <label for="dataInicio" class="form-label">Data Início</label>
+                                    <input type="date" class="form-control" id="dataInicio" name="data_inicio" value="<%= typeof filtros !== 'undefined' && filtros.data_inicio ? filtros.data_inicio : '' %>" style="width: 140px;">
+                                </div>
+                                <div class="col-md-auto">
+                                    <label for="dataFim" class="form-label">Data Fim</label>
+                                    <input type="date" class="form-control" id="dataFim" name="data_fim" value="<%= typeof filtros !== 'undefined' && filtros.data_fim ? filtros.data_fim : '' %>" style="width: 140px;">
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-filter" onclick="aplicarFiltros()" title="Aplicar Filtros">🔍</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Relatórios Disponíveis -->
+                <div class="row">
+                    <!-- Relatório de Jurados -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users btn-icon"></i>Relatório de Jurados
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório completo com dados dos jurados cadastrados, incluindo informações pessoais e status.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('jurados', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('jurados', 'csv')" title="Exportar CSV">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('jurados', 'excel')" title="Exportar Excel">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relatório de Sorteios -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-random btn-icon"></i>Relatório de Sorteios
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório detalhado dos sorteios realizados, com datas, processos e jurados sorteados.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('sorteios', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('sorteios', 'csv')">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('sorteios', 'excel')">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relatório de Instituições -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-building btn-icon"></i>Relatório de Instituições
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório das instituições cadastradas e suas indicações de cidadãos exemplares.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('instituicoes', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('instituicoes', 'csv')">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('instituicoes', 'excel')">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relatório de Indicções -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-list btn-icon"></i>Relatório de Indicações
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório das indicações de cidadãos exemplares pelas instituições.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('indicacoes', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('indicacoes', 'csv')">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('indicacoes', 'excel')">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relatório de Editais -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-file-alt btn-icon"></i>Relatório de Editais
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório dos editais RTF gerados com os nomes dos jurados ativos.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('editais', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('editais', 'csv')">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('editais', 'excel')">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relatório de E-mails -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-envelope btn-icon"></i>Relatório de E-mails
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório dos e-mails enviados (intimações e recebimentos).</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('emails', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('emails', 'csv')">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('emails', 'excel')">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relatório de Último Conselho -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-gavel btn-icon"></i>Relatório de Último Conselho
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Relatório dos jurados com data de último conselho registrada.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" onclick="gerarRelatorio('ultimo-conselho', 'pdf')">
+                                        🖨️
+                                    </button>
+                                    <button class="btn btn-success" onclick="gerarRelatorio('ultimo-conselho', 'csv')">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-info" onclick="gerarRelatorio('ultimo-conselho', 'excel')">
+                                        📈
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Relatório Personalizado -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs btn-icon"></i>Relatório Personalizado
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="tipoRelatorio" class="form-label">Tipo de Relatório</label>
+                                <select class="form-select" id="tipoRelatorio">
+                                    <option value="">Selecione o tipo...</option>
+                                    <option value="consolidado">Relatório Consolidado</option>
+                                    <option value="periodo">Relatório por Período</option>
+                                    <option value="instituicao">Relatório por Instituição</option>
+                                    <option value="juiz">Relatório por Juiz</option>
+                                </select>
+                            </div>
+                            <div class="col-md-auto">
+                                <label for="formatoRelatorio" class="form-label">Formato</label>
+                                <select class="form-select" id="formatoRelatorio" style="width: 10ch;">
+                                    <option value="pdf">PDF</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="excel">Excel</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary" onclick="gerarRelatorioPersonalizado()">
+                                📊 Gerar Relatório Personalizado
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Funções JavaScript
+        function aplicarFiltros() {
+            const form = document.getElementById('filtrosForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            for (let [key, value] of formData.entries()) { if (value) params.append(key, value); }
+            window.location.href = `/relatorios?${params.toString()}`;
+        }
+        function gerarRelatorio(tipo, formato) {
+            const filtros = obterFiltrosAtuais();
+            const url = `/relatorios/gerar/${tipo}/${formato}?${filtros}`;
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin btn-icon"></i>Gerando...';
+            btn.disabled = true;
+            window.open(url, '_blank');
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        }
+        function gerarRelatorioPersonalizado() {
+            const tipo = document.getElementById('tipoRelatorio').value;
+            const formato = document.getElementById('formatoRelatorio').value;
+            if (!tipo) { alert('Selecione o tipo de relatório.'); return; }
+            const filtros = obterFiltrosAtuais();
+            const url = `/relatorios/personalizado/${tipo}/${formato}?${filtros}`;
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin btn-icon"></i>Gerando...';
+            btn.disabled = true;
+            window.open(url, '_blank');
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        }
+        function obterFiltrosAtuais() {
+            const params = new URLSearchParams();
+            const ano = document.getElementById('anoReferencia').value;
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+            if (ano) params.append('ano', ano);
+            if (dataInicio) params.append('data_inicio', dataInicio);
+            if (dataFim) params.append('data_fim', dataFim);
+            return params.toString();
+        }
+        // Carregar totais no rodapé
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados || 0;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes || 0;
+                })
+                .catch(error => console.error('Erro ao carregar estatísticas:', error));
+            
+            // Auto-aplicar filtros quando ano muda
+            const anoReferencia = document.getElementById('anoReferencia');
+            if (anoReferencia) {
+                anoReferencia.addEventListener('change', function() {
+                    if (this.value) {
+                        aplicarFiltros();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

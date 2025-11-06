@@ -1,0 +1,44 @@
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.production
+
+# Banco de dados
+database/*.db
+database/*.db-journal
+database/*.db-wal
+database/*.db-shm
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Backups
+backups/*
+!backups/.gitkeep
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+dist/
+build/

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Detalhes do Backup</h2>
+            <div class="d-flex gap-2">
+                <a class="btn btn-back" href="/backup" title="Voltar">⬅️</a>
+                <a class="btn btn-filter" href="/backup/baixar/<%= detalhes.arquivo %>" title="Baixar">⬇️</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Arquivo</dt>
+                    <dd class="col-sm-9"><code><%= detalhes.arquivo %></code></dd>
+
+                    <dt class="col-sm-3">Tamanho</dt>
+                    <dd class="col-sm-9"><%= detalhes.tamanho %> (<%= detalhes.tamanhoBytes %> bytes)</dd>
+
+                    <dt class="col-sm-3">Criado em</dt>
+                    <dd class="col-sm-9"><%= new Date(detalhes.criadoEm).toLocaleString('pt-BR') %></dd>
+
+                    <dt class="col-sm-3">Modificado em</dt>
+                    <dd class="col-sm-9"><%= new Date(detalhes.modificadoEm).toLocaleString('pt-BR') %></dd>
+
+                    <dt class="col-sm-3">Tipo</dt>
+                    <dd class="col-sm-9"><%= detalhes.tipo %></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-custom mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col text-center">
+                    <small>Backup • Detalhes</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

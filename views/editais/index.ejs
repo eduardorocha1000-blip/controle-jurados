@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body { height: 100vh; overflow: hidden; }
+        .editais-scroll { height: calc(100vh - (var(--header-height) + var(--footer-height))); overflow-y: auto; }
+        @media (max-width: 768px) { body { overflow: auto; height: auto; } .editais-scroll { height: auto; } }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            👤 <%= user.nome %>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/login/logout" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        🚪 Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+                <div class="p-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/juizes">
+                                ⚖️ Juízes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/instituicoes">
+                                🏢 Instituições
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/jurados">
+                                👥 Jurados
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/indicacoes">
+                                📋 Indicações
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/sorteios">
+                                🎲 Sorteios
+                            </a>
+                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ultimo-conselho">🙋 Último Conselho</a>
+                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cedulas">
+                                🎫 Cédulas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/editais">
+                                📄 Editais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/emails">
+                                📧 E-mails
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/relatorios">
+                                📈 Relatórios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/backup">
+                                💾 Backup
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/usuarios">
+                                <i class="fas fa-user-cog btn-icon"></i>Usuários
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <% if (typeof flash !== 'undefined' && flash) { %>
+                    <% if (flash.success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= flash.success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (flash.error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= flash.error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Editais</h2>
+                    <a href="/editais/novo" class="btn btn-primary">➕ Novo Edital</a>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row mb-4 stats-cards">
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-primary fs-5">📄</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Total</h5>
+                                        <h3 class="mb-0"><%= typeof totalEditais !== 'undefined' ? totalEditais : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-success fs-5">🟢</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Publicados</h5>
+                                        <h3 class="mb-0"><%= typeof editaisPublicados !== 'undefined' ? editaisPublicados : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-danger fs-5">🔴</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Rascunho</h5>
+                                        <h3 class="mb-0"><%= typeof editaisRascunho !== 'undefined' ? editaisRascunho : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-info fs-5">📅</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Este Ano</h5>
+                                        <h3 class="mb-0"><%= typeof editaisAnoAtual !== 'undefined' ? editaisAnoAtual : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form method="GET" action="/editais" class="row g-2 align-items-end flex-wrap">
+                            <div class="col-auto">
+                                <label for="busca" class="form-label">Buscar</label>
+                                <input type="text" class="form-control" id="busca" name="busca" placeholder="Número, título ou ano..." value="<%= typeof filtros !== 'undefined' && filtros.busca ? filtros.busca : '' %>" style="width: 30ch;">
+                            </div>
+                            <div class="col-auto">
+                                <label for="data_prevista" class="form-label">Data Prevista</label>
+                                <input type="date" class="form-control" id="data_prevista" name="data_prevista" value="<%= typeof filtros !== 'undefined' && filtros.data_prevista ? filtros.data_prevista : '' %>" style="width: 140px;">
+                            </div>
+                            <div class="col-auto">
+                                <label for="data_real" class="form-label">Data Real</label>
+                                <input type="date" class="form-control" id="data_real" name="data_real" value="<%= typeof filtros !== 'undefined' && filtros.data_real ? filtros.data_real : '' %>" style="width: 140px;">
+                            </div>
+                            <div class="col-auto">
+                                <label for="juiz_id" class="form-label">Juiz</label>
+                                <select class="form-select" id="juiz_id" name="juiz_id" style="width: 26ch;">
+                                    <option value="">Todos</option>
+                                    <% if (typeof juizes !== 'undefined' && juizes) { %>
+                                        <% juizes.forEach(juiz => { %>
+                                            <option value="<%= juiz.id %>" <%= typeof filtros !== 'undefined' && filtros.juiz_id == juiz.id ? 'selected' : '' %>><%= juiz.nome_completo %></option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status" style="width: 16ch;">
+                                    <option value="">Todos</option>
+                                    <option value="Rascunho" <%= typeof filtros !== 'undefined' && filtros.status === 'Rascunho' ? 'selected' : '' %>>Rascunho</option>
+                                    <option value="Publicado" <%= typeof filtros !== 'undefined' && filtros.status === 'Publicado' ? 'selected' : '' %>>Publicado</option>
+                                    <option value="Vencido" <%= typeof filtros !== 'undefined' && filtros.status === 'Vencido' ? 'selected' : '' %>>Vencido</option>
+                                </select>
+                            </div>
+                            <div class="col-auto d-flex align-items-end">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-search" title="Buscar">🔍</button>
+                                    <button type="button" class="btn btn-clear" onclick="limparPesquisa()" title="Limpar">🧹</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabela de Editais -->
+                <div class="card">
+                    <div class="card-body">
+                        <% if (typeof editais !== 'undefined' && editais && editais.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Título</th>
+                                        <th>Ano</th>
+                                        <th>Data Prevista</th>
+                                        <th>Data Real</th>
+                                        <th>Juiz</th>
+                                        <th class="text-center">Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% editais.forEach(edital => { %>
+                                    <tr>
+                                        <td><%= edital.numero %></td>
+                                        <td><%= edital.titulo %></td>
+                                        <td><%= edital.ano_referencia %></td>
+                                        <td><%= edital.data_publicacao_prevista ? new Date(edital.data_publicacao_prevista + 'T00:00:00').toLocaleDateString('pt-BR') : '-' %></td>
+                                        <td><%= edital.data_publicacao_real ? new Date(edital.data_publicacao_real + 'T00:00:00').toLocaleDateString('pt-BR') : '-' %></td>
+                                        <td><%= edital.juiz_nome || '-' %></td>
+                                        <td class="text-center">
+                                            <% 
+                                            // Usar campo status diretamente
+                                            let badgeClass = 'bg-secondary';
+                                            if (edital.status === 'Rascunho') badgeClass = 'bg-warning';
+                                            else if (edital.status === 'Publicado') badgeClass = 'bg-success';
+                                            else if (edital.status === 'Vencido') badgeClass = 'bg-danger';
+                                            %>
+                                            <span class="badge <%= badgeClass %>">
+                                                <%= edital.status || 'Rascunho' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group" aria-label="Ações">
+                                                <a href="/editais/<%= edital.id %>" class="btn btn-view btn-sm" title="Visualizar">👁️</a>
+                                                <a href="/editais/<%= edital.id %>/editar" class="btn btn-edit btn-sm" title="Editar">✏️</a>
+                                                <button class="btn btn-delete btn-sm" onclick="excluirEdital(<%= edital.id %>)" title="Excluir">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhum edital cadastrado</h5>
+                            <p class="text-muted">Comece criando o primeiro edital do sistema.</p>
+                            <a href="/editais/novo" class="btn btn-primary">
+                                ➕ Criar Primeiro Edital
+                            </a>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/table-sort.js"></script>
+    <script>
+        // Funções JavaScript
+        function limparPesquisa() {
+            document.querySelector('form[action="/editais"]').reset();
+            window.location.href = '/editais';
+        }
+
+        function gerarRTF(id) {
+            window.location.href = `/editais/${id}/gerar-rtf`;
+        }
+
+        function excluirEdital(id) {
+            fetch(`/editais/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Edital excluído com sucesso!');
+                    location.reload();
+                } else {
+                    alert('Erro ao excluir edital: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao excluir edital: ' + error.message);
+            });
+        }
+
+        // Busca em tempo real
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarEditais();
+            }
+        });
+
+        // Carregar totais no rodapé
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-jurados').textContent = data.totalJurados || 0;
+                document.getElementById('total-instituicoes').textContent = data.totalInstituicoes || 0;
+            })
+            .catch(error => console.error('Erro ao carregar estatísticas:', error));
+    </script>
+</body>
+</html>

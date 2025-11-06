@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  <style>
+    body { height: 100vh; overflow: hidden; }
+    .ultimo-conselho-scroll { overflow-y: auto; }
+    @media (max-width: 768px) { body { overflow: auto; height: auto; } .ultimo-conselho-scroll { height: auto; } }
+    
+    /* Aumentar botão e emoji em mais 4px na página Último Conselho */
+    #formUltimoConselho .btn-edit.btn-sm {
+      font-size: 22px !important;
+      padding: 12px 14px !important;
+    }
+    #formUltimoConselho .btn-edit.btn-sm * {
+      font-size: 22px !important;
+    }
+    
+    /* Cor de fundo e texto nos campos Nome do Jurado */
+    .nome-jurado {
+      background-color: #F5F5DC !important;
+      color: #8B4513 !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cabeçalho -->
+  <header class="header-custom">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+        </div>
+        <div class="col">
+          <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+          <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+        </div>
+        <div class="col-auto">
+          <% if (typeof user !== 'undefined' && user) { %>
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              👤 <%= user.nome %>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="POST" action="/login/logout" class="d-inline">
+                  <button type="submit" class="dropdown-item">🚪 Sair</button>
+                </form>
+              </li>
+            </ul>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container ultimo-conselho-scroll" style="height: 604px; overflow-y: auto; flex: 1;">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="p-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/juizes">⚖️ Juízes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/instituicoes">🏢 Instituições</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/jurados">👥 Jurados</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/indicacoes">📋 Indicações</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/sorteios">🎲 Sorteios</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/ultimo-conselho">🙋 Último Conselho</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/cedulas">🎫 Cédulas</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/editais">📄 Editais</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/emails">📧 E-mails</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/relatorios">📈 Relatórios</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/backup">💾 Backup</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/usuarios"><i class="fas fa-user-cog btn-icon"></i>Usuários</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+      <div class="container-fluid">
+        <!-- Cabeçalho -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h2>Último Conselho</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensagens -->
+        <% if (typeof messages !== 'undefined' && messages) { %>
+          <% if (messages.success && messages.success.length > 0) { %>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            ✅ <%= messages.success[0] %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          <% } %>
+          <% if (messages.error && messages.error.length > 0) { %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ❌ <%= messages.error[0] %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          <% } %>
+        <% } %>
+
+        <!-- Formulário -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">🗳️ Registrar Último Conselho</h5>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="/ultimo-conselho/salvar" id="formUltimoConselho">
+              <!-- Data do Conselho -->
+              <div class="row mb-4">
+                <div class="col-md-auto">
+                  <label for="data_conselho" class="form-label">Data do Último Conselho <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" id="data_conselho" name="data_conselho" required style="width: 140px;">
+                </div>
+              </div>
+
+              <!-- CPFs dos Jurados (0 a 7) -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <label class="form-label">CPFs dos Jurados Sorteados (0 a 7)</label>
+                  <div id="cpfs-container">
+                    <% for (let i = 0; i < 7; i++) { %>
+                    <div class="row mb-3 cpf-row" data-index="<%= i %>">
+                      <div class="col-auto">
+                        <label class="form-label">CPF <%= i + 1 %></label>
+                        <input type="text" class="form-control cpf-input" name="cpfs[]" placeholder="000.000.000-00" maxlength="14" style="width: 150px;">
+                      </div>
+                      <div class="col">
+                        <label class="form-label">Nome do Jurado</label>
+                        <input type="text" class="form-control nome-jurado" readonly>
+                      </div>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botões -->
+              <div class="row">
+                <div class="col-12">
+                  <button type="submit" class="btn btn-edit btn-sm" title="Salvar">💾</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Rodapé -->
+  <footer class="footer-custom">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    function ajustarAlturaScroll() {
+      const header = document.querySelector('.header-custom');
+      const footer = document.querySelector('.footer-custom');
+      const container = document.querySelector('.ultimo-conselho-scroll');
+      if (!header || !footer || !container) return;
+      const h = header.getBoundingClientRect().height;
+      const f = footer.getBoundingClientRect().height;
+      const altura = window.innerHeight - (h + f);
+      container.style.height = altura + 'px';
+      container.style.overflowY = 'auto';
+    }
+    window.addEventListener('load', ajustarAlturaScroll);
+    window.addEventListener('resize', ajustarAlturaScroll);
+
+    document.addEventListener('DOMContentLoaded', function() {
+      ajustarAlturaScroll();
+
+      // Máscara de CPF
+      function aplicarMascaraCPF(input) {
+        let value = input.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.substring(0, 11);
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        input.value = value;
+        return value.replace(/\D/g, '');
+      }
+
+      // Buscar nome do jurado por CPF
+      function buscarNomePorCPF(cpfInput) {
+        const cpfLimpo = aplicarMascaraCPF(cpfInput);
+        const nomeInput = cpfInput.closest('.cpf-row').querySelector('.nome-jurado');
+        
+        if (cpfLimpo.length === 11) {
+          nomeInput.value = 'Buscando...';
+          nomeInput.style.color = '#666';
+          
+          fetch(`/ultimo-conselho/api/jurado-por-cpf/${cpfLimpo}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.success && data.jurado) {
+                nomeInput.value = data.jurado.nome;
+                nomeInput.style.color = '#28a745';
+              } else {
+                nomeInput.value = 'Jurado não encontrado';
+                nomeInput.style.color = '#dc3545';
+              }
+            })
+            .catch(error => {
+              console.error('Erro ao buscar jurado:', error);
+              nomeInput.value = 'Erro ao buscar';
+              nomeInput.style.color = '#dc3545';
+            });
+        } else if (cpfLimpo.length === 0) {
+          nomeInput.value = '';
+        }
+      }
+
+      // Aplicar máscara e buscar nome em cada input de CPF
+      document.querySelectorAll('.cpf-input').forEach(input => {
+        input.addEventListener('input', function() {
+          aplicarMascaraCPF(this);
+          buscarNomePorCPF(this);
+        });
+
+        input.addEventListener('blur', function() {
+          buscarNomePorCPF(this);
+        });
+      });
+
+      // Validação do formulário
+      document.getElementById('formUltimoConselho').addEventListener('submit', function(e) {
+        const dataConselho = document.getElementById('data_conselho').value;
+        if (!dataConselho) {
+          e.preventDefault();
+          alert('Por favor, informe a data do conselho');
+          return false;
+        }
+
+        const cpfsPreenchidos = Array.from(document.querySelectorAll('.cpf-input'))
+          .map(input => input.value.replace(/\D/g, ''))
+          .filter(cpf => cpf.length === 11);
+
+        if (cpfsPreenchidos.length === 0) {
+      // Sem confirmação: permitir salvar apenas a data
+        }
+      });
+
+      // Fetch total de jurados e instituições para o rodapé
+      fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('total-jurados').textContent = data.totalJurados;
+          document.getElementById('total-instituicoes').textContent = data.totalInstituicoes;
+        })
+        .catch(error => console.error('Erro ao buscar estatísticas:', error));
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { margin: 0; }
+            .cedula-container { 
+                page-break-inside: avoid;
+                margin: 0;
+                padding: 0;
+            }
+        }
+        
+        .cedula-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #000;
+            padding: 20px;
+            background: white;
+        }
+        
+        .cedula-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .cedula-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .cedula-subtitle {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .cedula-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .cedula-field {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .cedula-field-label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .cedula-field-value {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .cedula-number {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid #000;
+            padding: 15px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        
+        .cedula-footer {
+            text-align: center;
+            border-top: 2px solid #000;
+            padding-top: 15px;
+            margin-top: 20px;
+        }
+        
+        .cedula-signature {
+            margin-top: 30px;
+        }
+        
+        .cedula-signature-line {
+            border-bottom: 1px solid #000;
+            width: 200px;
+            margin: 0 auto 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- Controles (não imprimem) -->
+                <div class="no-print mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2>
+                            <i class="fas fa-ticket-alt btn-icon"></i>Cédula de Sorteio
+                        </h2>
+                        <div class="btn-group">
+                            <button class="btn btn-delete btn-sm" onclick="window.print()" title="Imprimir">🗑️</button>
+                            <button class="btn btn-secondary" onclick="window.close()">
+                                <i class="fas fa-times btn-icon"></i>Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cédula -->
+                <div class="cedula-container">
+                    <div class="cedula-header">
+                        <div class="cedula-title">TRIBUNAL DE JUSTIÇA DE SANTA CATARINA</div>
+                        <div class="cedula-subtitle">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</div>
+                        <div class="cedula-subtitle">CÉDULA DE SORTEIO PARA JÚRI POPULAR</div>
+                    </div>
+
+                    <div class="cedula-info">
+                        <div class="cedula-field">
+                            <div class="cedula-field-label">PROCESSO Nº</div>
+                            <div class="cedula-field-value"><%= typeof cedula !== 'undefined' && cedula ? cedula.numero_processo : '[NÚMERO DO PROCESSO]' %></div>
+                        </div>
+                        <div class="cedula-field">
+                            <div class="cedula-field-label">DATA DO JÚRI</div>
+                            <div class="cedula-field-value"><%= typeof cedula !== 'undefined' && cedula ? new Date(cedula.data_juri).toLocaleDateString('pt-BR') : '[DATA DO JÚRI]' %></div>
+                        </div>
+                        <div class="cedula-field">
+                            <div class="cedula-field-label">HORA DO JÚRI</div>
+                            <div class="cedula-field-value"><%= typeof cedula !== 'undefined' && cedula ? cedula.hora_juri : '[HORA DO JÚRI]' %></div>
+                        </div>
+                        <div class="cedula-field">
+                            <div class="cedula-field-label">LOCAL</div>
+                            <div class="cedula-field-value"><%= typeof cedula !== 'undefined' && cedula ? cedula.local_sorteio : '[LOCAL DO JÚRI]' %></div>
+                        </div>
+                    </div>
+
+                    <div class="cedula-number">
+                        CÉDULA Nº <%= typeof cedula !== 'undefined' && cedula ? cedula.numero_cedula : '[NÚMERO DA CÉDULA]' %>
+                    </div>
+
+                    <div class="cedula-info">
+                        <div class="cedula-field">
+                            <div class="cedula-field-label">ANO DE REFERÊNCIA</div>
+                            <div class="cedula-field-value"><%= typeof cedula !== 'undefined' && cedula ? cedula.ano_referencia : new Date().getFullYear() %></div>
+                        </div>
+                        <div class="cedula-field">
+                            <div class="cedula-field-label">DATA DO SORTEIO</div>
+                            <div class="cedula-field-value"><%= typeof cedula !== 'undefined' && cedula ? new Date(cedula.data_sorteio).toLocaleDateString('pt-BR') : '[DATA DO SORTEIO]' %></div>
+                        </div>
+                    </div>
+
+                    <div class="cedula-footer">
+                        <div class="cedula-signature">
+                            <div class="cedula-signature-line"></div>
+                            <div style="font-size: 12px;">Assinatura do Juiz</div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 12px;">
+                            Capivari de Baixo, <%= new Date().toLocaleDateString('pt-BR') %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações adicionais (não imprimem) -->
+                <div class="no-print mt-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle btn-icon"></i>Informações da Cédula
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-success"><%= typeof cedula !== 'undefined' && cedula ? cedula.status : 'Gerada' %></span>
+                                    </p>
+                                    <p><strong>Data de Geração:</strong> 
+                                        <%= typeof cedula !== 'undefined' && cedula ? new Date(cedula.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR') %>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Juiz Responsável:</strong> 
+                                        <%= typeof cedula !== 'undefined' && cedula ? cedula.juiz_nome : '[NOME DO JUIZ]' %>
+                                    </p>
+                                    <p><strong>Total de Jurados:</strong> 
+                                        <%= typeof cedula !== 'undefined' && cedula ? cedula.total_jurados : '[TOTAL]' %>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-print quando a página carrega (se for impressão)
+        if (window.location.search.includes('print=true')) {
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            };
+        }
+
+        // Configurações de impressão
+        window.addEventListener('beforeprint', function() {
+            document.title = 'Cédula de Sorteio - <%= typeof cedula !== "undefined" && cedula ? cedula.numero_processo : "Processo" %>';
+        });
+    </script>
+</body>
+</html>

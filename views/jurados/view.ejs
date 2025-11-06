@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo me-3">
+                    <div>
+                        <h1 class="header-title">Controle de Jurados</h1>
+                        <p class="header-subtitle">Comarca de Capivari de Baixo</p>
+                    </div>
+                </div>
+                <% if (typeof user !== 'undefined' && user) { %>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 <%= user.nome %>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                        <% if (user.perfil === 'Administrador') { %>
+                        <li><a class="dropdown-item" href="/usuarios">👥 Usuários</a></li>
+                        <% } %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/login/logout" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item">🚪 Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <% if (typeof user !== 'undefined' && user) { %>
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+                            📊 Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'juizes' ? 'active' : '' %>" href="/juizes">
+                            ⚖️ Juízes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'instituicoes' ? 'active' : '' %>" href="/instituicoes">
+                            🏢 Instituições
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'jurados' ? 'active' : '' %>" href="/jurados">
+                            👥 Jurados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'indicacoes' ? 'active' : '' %>" href="/indicacoes">
+                            📋 Indicações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'sorteios' ? 'active' : '' %>" href="/sorteios">
+                            🎲 Sorteios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'ultimo-conselho' ? 'active' : '' %>" href="/ultimo-conselho">
+                            🙋 Último Conselho
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'cedulas' ? 'active' : '' %>" href="/cedulas">
+                            🎫 Cédulas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'editais' ? 'active' : '' %>" href="/editais">
+                            📄 Editais
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'emails' ? 'active' : '' %>" href="/emails">
+                            📧 E-mails
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'relatorios' ? 'active' : '' %>" href="/relatorios">
+                            📊 Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'backup' ? 'active' : '' %>" href="/backup">
+                            💾 Backup
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <% } %>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <% if (typeof messages !== 'undefined' && messages) { %>
+                <% if (messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ <%= messages.success[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                <% if (messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ <%= messages.error[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+            <% } %>
+
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><%= jurado.nome_completo %></h2>
+                                <p class="text-muted mb-0">Detalhes do jurado</p>
+                            </div>
+                            <div>
+                                <a href="/jurados" class="btn btn-back me-2" title="Voltar">⬅️</a>
+                                <a href="/jurados/<%= jurado.id %>/editar" class="btn btn-edit" title="Editar">✏️</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações do Jurado -->
+                <div class="row">
+                    <% if (jurado && jurado.foto_path) { %>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body d-flex justify-content-center align-items-center">
+                                <img src="<%= jurado.foto_path %>" alt="Foto do jurado" class="img-fluid img-thumbnail" style="max-height:260px;">
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Dados Pessoais</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Nome Completo:</strong><br>
+                                        <%= jurado.nome_completo %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>CPF:</strong><br>
+                                        <%= jurado.cpf %>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>RG:</strong><br>
+                                        <%= jurado.rg || '-' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Data de Nascimento:</strong><br>
+                                        <%= jurado.data_nascimento ? new Date(jurado.data_nascimento).toLocaleDateString('pt-BR') : '-' %>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Sexo:</strong><br>
+                                        <%= jurado.sexo || '-' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Profissão:</strong><br>
+                                        <%= jurado.profissao || '-' %>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>E-mail:</strong><br>
+                                        <%= jurado.email || '-' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Telefone:</strong><br>
+                                        <%= jurado.telefone || '-' %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Endereço</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <strong>Endereço:</strong><br>
+                                        <%= jurado.endereco %>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>Número:</strong><br>
+                                        <%= jurado.numero %>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <strong>Complemento:</strong><br>
+                                        <%= jurado.complemento || '-' %>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>Bairro:</strong><br>
+                                        <%= jurado.bairro %>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>CEP:</strong><br>
+                                        <%= jurado.cep %>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Cidade:</strong><br>
+                                        <%= jurado.cidade %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>UF:</strong><br>
+                                        <%= jurado.uf %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações Adicionais</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <strong>Status:</strong><br>
+                                    <span class="badge <%= jurado.status === 'Ativo' ? 'bg-success' : 'bg-danger' %>">
+                                        <%= jurado.status %>
+                                    </span>
+                                </div>
+
+                                <% if (jurado.motivo) { %>
+                                <div class="mb-3">
+                                    <strong>Motivo:</strong><br>
+                                    <%= jurado.motivo %>
+                                </div>
+                                <% } %>
+
+                                <% if (jurado.suspenso_ate) { %>
+                                <div class="mb-3">
+                                    <strong>Suspenso Até:</strong><br>
+                                    <%= new Date(jurado.suspenso_ate).toLocaleDateString('pt-BR') %>
+                                </div>
+                                <% } %>
+
+                                <div class="mb-3">
+                                    <strong>Último Conselho:</strong><br>
+                                    <% 
+                                    let ultimoConselhoFormatado = '-';
+                                    if (jurado.ultimo_conselho) {
+                                        // Formatar data diretamente da string YYYY-MM-DD para DD/MM/YYYY sem conversão de timezone
+                                        const partes = jurado.ultimo_conselho.split('-');
+                                        if (partes.length === 3) {
+                                            ultimoConselhoFormatado = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                                        } else {
+                                            // Fallback para caso não esteja no formato esperado
+                                            ultimoConselhoFormatado = jurado.ultimo_conselho;
+                                        }
+                                    }
+                                    %>
+                                    <%= ultimoConselhoFormatado %>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Indicado pela Instituição:</strong><br>
+                                    <%= jurado.instituicao_nome || '-' %>
+                                </div>
+
+                                <% if (jurado.observacoes) { %>
+                                <div class="mb-3">
+                                    <strong>Observações:</strong><br>
+                                    <%= jurado.observacoes %>
+                                </div>
+                                <% } %>
+
+                                <div class="mb-3">
+                                    <strong>Data de Cadastro:</strong><br>
+                                    <%= new Date(jurado.created_at).toLocaleDateString('pt-BR') %>
+                                </div>
+
+                                <% if (jurado.updated_at && jurado.updated_at !== jurado.created_at) { %>
+                                <div class="mb-3">
+                                    <strong>Última Atualização:</strong><br>
+                                    <%= new Date(jurado.updated_at).toLocaleDateString('pt-BR') %>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Carregar totais no rodapé
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-jurados').textContent = data.totalJurados || 0;
+                document.getElementById('total-instituicoes').textContent = data.totalInstituicoes || 0;
+            })
+            .catch(error => console.error('Erro ao carregar estatísticas:', error));
+    </script>
+</body>
+</html>

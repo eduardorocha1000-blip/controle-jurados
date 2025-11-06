@@ -1,0 +1,55 @@
+# Arquivos e diretórios ignorados pelo Git
+
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Banco de dados
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Uploads
+uploads/
+!uploads/.gitkeep
+
+# Backups
+backups/
+!backups/.gitkeep
+
+# Arquivos temporários
+temp/
+tmp/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos de build
+# dist/ - NÃO IGNORAR - necessário para Cloudflare Pages
+build/
+
+# Coverage
+coverage/
+
+# Arquivos de teste
+test-results/

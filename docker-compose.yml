@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  controle-jurados:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_FILENAME=/app/database/controle_jurados.db
+      - SESSION_SECRET=sua_chave_secreta_muito_segura_aqui
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=seu_email@gmail.com
+      - SMTP_PASS=sua_senha_app_gmail
+      - SMTP_FROM=Vara Única <vara@tjsc.jus.br>
+      - APP_URL=http://localhost:3000
+    volumes:
+      - ./database:/app/database
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

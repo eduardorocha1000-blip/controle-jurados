@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo me-3">
+                    <div>
+                        <h1 class="header-title">Controle de Jurados</h1>
+                        <p class="header-subtitle">Comarca de Capivari de Baixo</p>
+                    </div>
+                </div>
+                <% if (typeof user !== 'undefined' && user) { %>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 <%= user.nome %>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                        <% if (user.perfil === 'Administrador') { %>
+                        <li><a class="dropdown-item" href="/usuarios">👥 Usuários</a></li>
+                        <% } %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/login/logout" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item">🚪 Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <% if (typeof user !== 'undefined' && user) { %>
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+                            📊 Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'juizes' ? 'active' : '' %>" href="/juizes">
+                            ⚖️ Juízes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'instituicoes' ? 'active' : '' %>" href="/instituicoes">
+                            🏢 Instituições
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'jurados' ? 'active' : '' %>" href="/jurados">
+                            👥 Jurados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'indicacoes' ? 'active' : '' %>" href="/indicacoes">
+                            📋 Indicações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'sorteios' ? 'active' : '' %>" href="/sorteios">
+                            🎲 Sorteios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'ultimo-conselho' ? 'active' : '' %>" href="/ultimo-conselho">
+                            🙋 Último Conselho
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'cedulas' ? 'active' : '' %>" href="/cedulas">
+                            🎫 Cédulas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'editais' ? 'active' : '' %>" href="/editais">
+                            📄 Editais
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'emails' ? 'active' : '' %>" href="/emails">
+                            📧 E-mails
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'relatorios' ? 'active' : '' %>" href="/relatorios">
+                            📊 Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'backup' ? 'active' : '' %>" href="/backup">
+                            💾 Backup
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <% } %>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <% if (typeof messages !== 'undefined' && messages) { %>
+                <% if (messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ <%= messages.success[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                <% if (messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ <%= messages.error[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle btn-icon"></i><%= error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <% } %>
+
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><%= typeof sorteio !== 'undefined' && sorteio.id ? 'Editar Sorteio' : 'Novo Sorteio' %></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0"></h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="<%= typeof action !== 'undefined' ? action : '/sorteios' %>">
+                                    <% if (typeof sorteio !== 'undefined' && sorteio && sorteio.id) { %>
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <% } %>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ano_referencia" class="form-label">Ano de Referência *</label>
+                                            <input type="number" class="form-control" id="ano_referencia" name="ano_referencia" 
+                                                   value="<%= typeof sorteio !== 'undefined' && sorteio ? sorteio.ano_referencia : new Date().getFullYear() + 1 %>" 
+                                                   min="2020" max="2030" required>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="data_realizacao" class="form-label">Data do Sorteio *</label>
+                                            <input type="date" class="form-control" id="data_realizacao" name="data_realizacao" 
+                                                   value="<%= typeof sorteio !== 'undefined' && sorteio ? sorteio.data_realizacao : '' %>" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="hora_juri" class="form-label">Hora do Sorteio</label>
+                                            <input type="time" class="form-control" id="hora_juri" name="hora_juri" 
+                                                   value="<%= typeof sorteio !== 'undefined' && sorteio ? sorteio.hora_juri : '' %>">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="juiz_responsavel_id" class="form-label">Juiz Responsável *</label>
+                                            <select class="form-select" id="juiz_responsavel_id" name="juiz_responsavel_id" required>
+                                                <option value="">Selecione...</option>
+                                                <% if (typeof juizes !== 'undefined' && juizes) { %>
+                                                    <% 
+                                                        let juizTitularId = null;
+                                                        juizes.forEach(juiz => {
+                                                            if (juiz.titular === 'Sim') {
+                                                                juizTitularId = juiz.id;
+                                                            }
+                                                        });
+                                                    %>
+                                                    <% juizes.forEach(juiz => { %>
+                                                        <option value="<%= juiz.id %>" 
+                                                                <%= typeof sorteio !== 'undefined' && sorteio && sorteio.juiz_responsavel_id == juiz.id ? 'selected' : (typeof sorteio === 'undefined' || !sorteio || !sorteio.juiz_responsavel_id) && juiz.id == juizTitularId ? 'selected' : '' %>>
+                                                            <%= juiz.nome_completo %>
+                                                        </option>
+                                                    <% }) %>
+                                                <% } %>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="data_juri" class="form-label">Data do Júri *</label>
+                                            <input type="date" class="form-control" id="data_juri" name="data_juri" 
+                                                   value="<%= typeof sorteio !== 'undefined' && sorteio ? sorteio.data_juri : '' %>" required>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="local_sorteio" class="form-label">Local do Sorteio</label>
+                                            <input type="text" class="form-control" id="local_sorteio" name="local_sorteio" 
+                                                   value="<%= typeof sorteio !== 'undefined' && sorteio && sorteio.local_sorteio ? sorteio.local_sorteio : 'Salão do Júri' %>">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="numero_processo" class="form-label">Número do Processo</label>
+                                            <input type="text" class="form-control" id="numero_processo" name="numero_processo" 
+                                                   value="<%= typeof sorteio !== 'undefined' && sorteio ? sorteio.numero_processo : '' %>">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="status" class="form-label">Status *</label>
+                                            <select class="form-select" id="status" name="status" required>
+                                                <option value="Agendado" <%= typeof sorteio !== 'undefined' && sorteio && sorteio.status === 'Agendado' ? 'selected' : '' %>>Agendado</option>
+                                                <option value="Realizado" <%= typeof sorteio !== 'undefined' && sorteio && sorteio.status === 'Realizado' ? 'selected' : '' %>>Realizado</option>
+                                                <option value="Cancelado" <%= typeof sorteio !== 'undefined' && sorteio && sorteio.status === 'Cancelado' ? 'selected' : '' %>>Cancelado</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="observacoes" class="form-label">Observações</label>
+                                            <textarea class="form-control" id="observacoes" name="observacoes" rows="4"><%= typeof sorteio !== 'undefined' && sorteio ? sorteio.observacoes : '' %></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-save">💾</button>
+                                        <a href="/sorteios" class="btn btn-back" title="Voltar">⬅️</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <h6>Importante:</h6>
+                                    <ul class="mb-0">
+                                        <li>Campos marcados com * são obrigatórios</li>
+                                        <li>Data do júri deve ser posterior à realização</li>
+                                        <li>Hora do sorteio é opcional</li>
+                                        <li>Status indica o progresso do sorteio</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Converter inputs para maiúsculas, exceto email, password, tel, url
+            document.querySelectorAll('input[type="text"], input[type="search"], textarea').forEach(function(input) {
+                if (input.type !== 'email' && input.type !== 'password' && input.type !== 'tel' && input.type !== 'url') {
+                    input.addEventListener('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+                }
+            });
+
+            // Fetch total de jurados e instituições para o rodapé
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes;
+                })
+                .catch(error => console.error('Erro ao buscar estatísticas:', error));
+        });
+    </script>
+</body>
+</html>

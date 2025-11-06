@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof juiz !== 'undefined' ? juiz.nome_completo : 'Juiz' %> - Controle de Jurados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo me-3">
+                    <div>
+                        <h1 class="header-title">Controle de Jurados</h1>
+                        <p class="header-subtitle">Comarca de Capivari de Baixo</p>
+                    </div>
+                </div>
+                <% if (typeof user !== 'undefined' && user) { %>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 <%= user.nome %>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                        <% if (user.perfil === 'Administrador') { %>
+                        <li><a class="dropdown-item" href="/usuarios">👥 Usuários</a></li>
+                        <% } %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/login/logout" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item">🚪 Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/juizes">⚖️ Juízes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instituicoes">🏢 Instituições</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/jurados">👥 Jurados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/indicacoes">📋 Indicações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sorteios">🎲 Sorteios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cedulas">🎫 Cédulas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editais">📄 Editais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/emails">📧 E-mails</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/relatorios">📊 Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backup">💾 Backup</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><%= typeof juiz !== 'undefined' ? juiz.nome_completo : 'Juiz' %></h2>
+                                <p class="text-muted mb-0">Detalhes do juiz</p>
+                            </div>
+                            <div>
+                                <a href="/juizes/<%= typeof juiz !== 'undefined' ? juiz.id : '' %>/editar" class="btn btn-edit me-2" title="Editar">✏️</a>
+                                <a href="/juizes" class="btn btn-back" title="Voltar">⬅️</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagens -->
+                <% if (typeof messages !== 'undefined' && messages) { %>
+                    <% if (messages.success && messages.success.length > 0) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= messages.success[0] %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (messages.error && messages.error.length > 0) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= messages.error[0] %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <!-- Informações do Juiz -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações Pessoais</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Nome Completo:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? juiz.nome_completo : 'N/A' %></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Matrícula:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? (juiz.matricula || 'N/A') : 'N/A' %></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Sexo:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? juiz.sexo : 'N/A' %></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">E-mail:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? (juiz.email || 'N/A') : 'N/A' %></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Telefone:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? (juiz.telefone || 'N/A') : 'N/A' %></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Status:</label>
+                                        <p class="form-control-plaintext">
+                                            <% if (typeof juiz !== 'undefined' && juiz.status) { %>
+                                                <span class="badge <%= juiz.status === 'Ativo' ? 'bg-success' : 'bg-danger' %>">
+                                                    <%= juiz.status %>
+                                                </span>
+                                            <% } else { %>
+                                                N/A
+                                            <% } %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações Profissionais</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Vara:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? (juiz.vara || 'N/A') : 'N/A' %></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Comarca:</label>
+                                        <p class="form-control-plaintext"><%= typeof juiz !== 'undefined' ? (juiz.comarca || 'N/A') : 'N/A' %></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Titular:</label>
+                                        <p class="form-control-plaintext">
+                                            <% if (typeof juiz !== 'undefined' && juiz.titular) { %>
+                                                <span class="badge <%= juiz.titular === 'Sim' ? 'bg-primary' : 'bg-secondary' %>">
+                                                    <%= juiz.titular %>
+                                                </span>
+                                            <% } else { %>
+                                                N/A
+                                            <% } %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <% if (typeof juiz !== 'undefined' && juiz.observacoes) { %>
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-bold">Observações:</label>
+                                        <p class="form-control-plaintext"><%= juiz.observacoes %></p>
+                                    </div>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Estatísticas</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h4 class="text-primary"><%= typeof stats !== 'undefined' ? stats.totalSorteios : 0 %></h4>
+                                            <small class="text-muted">Total de Sorteios</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h4 class="text-success"><%= typeof stats !== 'undefined' ? stats.sorteiosRealizados : 0 %></h4>
+                                            <small class="text-muted">Sorteios Realizados</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h4 class="text-info"><%= typeof stats !== 'undefined' ? stats.sorteiosAtivos : 0 %></h4>
+                                            <small class="text-muted">Sorteios Ativos</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="border rounded p-3">
+                                            <h4 class="text-warning"><%= typeof stats !== 'undefined' ? stats.totalJurados : 0 %></h4>
+                                            <small class="text-muted">Total de Jurados</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Ações Rápidas</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/juizes/<%= typeof juiz !== 'undefined' ? juiz.id : '' %>/editar" class="btn btn-warning">
+                                        ✏️
+                                    </a>
+                                    <a href="/sorteios/novo?juiz=<%= typeof juiz !== 'undefined' ? juiz.id : '' %>" class="btn btn-primary">
+                                        🎲 Novo Sorteio
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-excluir-juiz" data-id="<%= typeof juiz !== 'undefined' ? juiz.id : '' %>" data-nome="<%= typeof juiz !== 'undefined' ? juiz.nome_completo : '' %>">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sorteios Recentes -->
+                <% if (typeof sorteios !== 'undefined' && sorteios.length > 0) { %>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Sorteios Recentes</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Número do Processo</th>
+                                                <th>Data de Realização</th>
+                                                <th>Local</th>
+                                                <th>Status</th>
+                                                <th>Total de Jurados</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% for (let i = 0; i < sorteios.length; i++) { %>
+                                            <% const sorteio = sorteios[i]; %>
+                                            <tr>
+                                                <td><%= sorteio.numero_processo || 'N/A' %></td>
+                                                <td><%= sorteio.data_realizacao ? new Date(sorteio.data_realizacao).toLocaleDateString('pt-BR') : 'N/A' %></td>
+                                                <td><%= sorteio.local || 'N/A' %></td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <%= sorteio.status || 'N/A' %>
+                                                    </span>
+                                                </td>
+                                                <td><%= sorteio.total_jurados || 0 %></td>
+                                            </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="modalExclusaoJuiz" tabindex="-1" role="dialog" aria-labelledby="modalExclusaoJuizLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExclusaoJuizLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Tem certeza de que deseja excluir o juiz <strong id="nomeJuiz"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formExclusaoJuiz" method="POST" action="">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="btn btn-delete" title="Excluir">🗑️</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listener para botão de exclusão
+            document.querySelectorAll('.btn-excluir-juiz').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nome = this.getAttribute('data-nome');
+                    document.getElementById('nomeJuiz').textContent = nome;
+                    document.getElementById('formExclusaoJuiz').action = '/juizes/' + id + '?_method=DELETE';
+                    new bootstrap.Modal(document.getElementById('modalExclusaoJuiz')).show();
+                });
+            });
+
+            // Fetch total de jurados e instituições para o rodapé
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes;
+                })
+                .catch(error => console.error('Erro ao buscar estatísticas:', error));
+        });
+    </script>
+</body>
+</html>

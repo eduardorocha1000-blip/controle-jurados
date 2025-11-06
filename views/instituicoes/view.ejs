@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo me-3">
+                    <div>
+                        <h1 class="header-title">Controle de Jurados</h1>
+                        <p class="header-subtitle">Comarca de Capivari de Baixo</p>
+                    </div>
+                </div>
+                <% if (typeof user !== 'undefined' && user) { %>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 <%= user.nome %>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                        <% if (user.perfil === 'Administrador') { %>
+                        <li><a class="dropdown-item" href="/usuarios">👥 Usuários</a></li>
+                        <% } %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/login/logout" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item">🚪 Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <% if (typeof user !== 'undefined' && user) { %>
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+                            📊 Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'juizes' ? 'active' : '' %>" href="/juizes">
+                            ⚖️ Juízes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'instituicoes' ? 'active' : '' %>" href="/instituicoes">
+                            🏢 Instituições
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'jurados' ? 'active' : '' %>" href="/jurados">
+                            👥 Jurados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'indicacoes' ? 'active' : '' %>" href="/indicacoes">
+                            📋 Indicações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'sorteios' ? 'active' : '' %>" href="/sorteios">
+                            🎲 Sorteios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'cedulas' ? 'active' : '' %>" href="/cedulas">
+                            🎫 Cédulas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'editais' ? 'active' : '' %>" href="/editais">
+                            📄 Editais
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'emails' ? 'active' : '' %>" href="/emails">
+                            📧 E-mails
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'relatorios' ? 'active' : '' %>" href="/relatorios">
+                            📊 Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'backup' ? 'active' : '' %>" href="/backup">
+                            💾 Backup
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <% } %>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <% if (typeof messages !== 'undefined' && messages) { %>
+                <% if (messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ <%= messages.success[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                <% if (messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ <%= messages.error[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle btn-icon"></i><%= error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <% } %>
+
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><%= instituicao.nome %></h2>
+                                <p class="text-muted mb-0">Detalhes da instituição</p>
+                            </div>
+                            <div>
+                                <a href="/instituicoes/<%= instituicao.id %>/editar" class="btn btn-edit me-2" title="Editar">✏️</a>
+                                <a href="/instituicoes" class="btn btn-back" title="Voltar">⬅️</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações da Instituição</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Nome:</strong> <%= instituicao.nome %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>CNPJ:</strong> <%= instituicao.cnpj || 'N/A' %>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Status:</strong> 
+                                        <span class="badge <%= instituicao.ativo === 'Sim' ? 'bg-success' : 'bg-danger' %>">
+                                            <%= instituicao.ativo === 'Sim' ? 'Ativo' : 'Inativo' %>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informações de Contato</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Nome do Contato:</strong> <%= instituicao.contato_nome || 'N/A' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>E-mail:</strong> <%= instituicao.contato_email || 'N/A' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Telefone:</strong> <%= instituicao.contato_telefone || 'N/A' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Quantidade:</strong> <%= instituicao.quantidade || 'N/A' %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Endereço</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <strong>Endereço:</strong> <%= instituicao.endereco || 'N/A' %>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>CEP:</strong> <%= instituicao.cep || 'N/A' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>Cidade:</strong> <%= instituicao.cidade || 'N/A' %>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <strong>UF:</strong> <%= instituicao.uf || 'N/A' %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <% if (instituicao.observacoes) { %>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Observações</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><%= instituicao.observacoes %></p>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Estatísticas</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Total de Jurados
+                                        <span class="badge bg-primary rounded-pill"><%= totalJurados || 0 %></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Quantidade Solicitada
+                                        <span class="badge bg-info rounded-pill"><%= instituicao.quantidade || 0 %></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Status
+                                        <span class="badge <%= instituicao.ativo === 'Sim' ? 'bg-success' : 'bg-danger' %> rounded-pill">
+                                            <%= instituicao.ativo === 'Sim' ? 'Ativo' : 'Inativo' %>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Ações Rápidas</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/instituicoes/<%= instituicao.id %>/editar" class="btn btn-warning">
+                                        ✏️
+                                    </a>
+                                    <a href="/jurados?instituicao_id=<%= instituicao.id %>" class="btn btn-primary">
+                                        👥 Ver Jurados
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-excluir-instituicao" data-id="<%= instituicao.id %>" data-nome="<%= instituicao.nome %>">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="modalExclusaoInstituicao" tabindex="-1" role="dialog" aria-labelledby="modalExclusaoInstituicaoLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExclusaoInstituicaoLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Tem certeza de que deseja excluir a instituição <strong id="nomeInstituicao"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formExclusaoInstituicao" method="POST" action="">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="btn btn-delete" title="Excluir">🗑️</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners para botões de exclusão de instituições
+            document.querySelectorAll('.btn-excluir-instituicao').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nome = this.getAttribute('data-nome');
+                    document.getElementById('nomeInstituicao').textContent = nome;
+                    document.getElementById('formExclusaoInstituicao').action = '/instituicoes/' + id + '?_method=DELETE';
+                    new bootstrap.Modal(document.getElementById('modalExclusaoInstituicao')).show();
+                });
+            });
+
+            // Fetch total de jurados e instituições para o rodapé
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-jurados').textContent = data.totalJurados;
+                    document.getElementById('total-instituicoes').textContent = data.totalInstituicoes;
+                })
+                .catch(error => console.error('Erro ao buscar estatísticas:', error));
+        });
+    </script>
+</body>
+</html>

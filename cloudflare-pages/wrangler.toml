@@ -1,0 +1,20 @@
+name = "controle-jurados"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+
+# Configuração do D1 Database
+# Você precisará criar o banco no Cloudflare Dashboard e adicionar o binding aqui
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "controle-jurados-db"
+# database_id = "seu-database-id-aqui"
+
+# Configuração do KV (para sessões/tokens, se necessário)
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "seu-kv-namespace-id-aqui"
+
+# Variáveis de ambiente
+[vars]
+NODE_ENV = "production"
+

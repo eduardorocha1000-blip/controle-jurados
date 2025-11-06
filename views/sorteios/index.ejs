@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body { height: 100vh; overflow: hidden; }
+        .sorteios-scroll { height: calc(100vh - (var(--header-height) + var(--footer-height))); overflow-y: auto; }
+        @media (max-width: 768px) { body { overflow: auto; height: auto; } .sorteios-scroll { height: auto; } }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo">
+                </div>
+                <div class="col">
+                    <h1 class="header-title">VARA ÚNICA DA COMARCA DE CAPIVARI DE BAIXO</h1>
+                    <p class="header-subtitle">by Eduardo Motta Rocha da Silva</p>
+                </div>
+                <div class="col-auto">
+                    <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            👤 <%= user.nome %>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/login/logout" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        🚪 Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+                <div class="p-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/juizes">
+                                ⚖️ Juízes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/instituicoes">
+                                🏢 Instituições
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/jurados">
+                                👥 Jurados
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/indicacoes">
+                                📋 Indicações
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/sorteios">
+                                🎲 Sorteios
+                            </a>
+                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ultimo-conselho">🙋 Último Conselho</a>
+                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cedulas">
+                                🎫 Cédulas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editais">
+                                📄 Editais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/emails">
+                                📧 E-mails
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/relatorios">
+                                📈 Relatórios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/backup">
+                                💾 Backup
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/usuarios">
+                                <i class="fas fa-user-cog btn-icon"></i>Usuários
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <% if (typeof flash !== 'undefined' && flash) { %>
+                    <% if (flash.success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        ✅ <%= flash.success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    <% if (flash.error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ❌ <%= flash.error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                <% } %>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Sorteios</h2>
+                    <a href="/sorteios/novo" class="btn btn-primary">➕ Novo Sorteio</a>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row mb-4 stats-cards">
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-primary fs-5">🎲</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Total</h5>
+                                        <h3 class="mb-0"><%= typeof totalSorteios !== 'undefined' ? totalSorteios : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-success fs-5">🟢</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Realizados</h5>
+                                        <h3 class="mb-0"><%= typeof sorteiosRealizados !== 'undefined' ? sorteiosRealizados : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-danger fs-5">🔴</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Pendentes</h5>
+                                        <h3 class="mb-0"><%= typeof sorteiosPendentes !== 'undefined' ? sorteiosPendentes : 0 %></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros e Ações -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form method="GET" action="/sorteios" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="busca" class="form-label">Buscar</label>
+                                <input type="text" class="form-control" id="busca" name="busca" placeholder="Processo ou juiz..." value="<%= typeof busca !== 'undefined' ? busca : '' %>">
+                            </div>
+                            <div class="col-md-auto">
+                                <label for="data_juri" class="form-label">Data Júri</label>
+                                <input type="date" class="form-control" id="data_juri" name="data_juri" value="<%= typeof data_juri !== 'undefined' ? data_juri : '' %>" style="width: 140px;">
+                            </div>
+                            <div class="col-md-auto">
+                                <label for="data_sorteio" class="form-label">Sorteio</label>
+                                <input type="date" class="form-control" id="data_sorteio" name="data_sorteio" value="<%= typeof data_sorteio !== 'undefined' ? data_sorteio : '' %>" style="width: 140px;">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="local" class="form-label">Local</label>
+                                <input type="text" class="form-control" id="local" name="local" placeholder="Local..." value="<%= typeof local !== 'undefined' ? local : '' %>">
+                            </div>
+                            <div class="col-md-auto">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status" style="padding-right: 30px;">
+                                    <option value="">Todos</option>
+                                    <option value="Agendado" <%= typeof status !== 'undefined' && status === 'Agendado' ? 'selected' : '' %>>Agendado</option>
+                                    <option value="Realizado" <%= typeof status !== 'undefined' && status === 'Realizado' ? 'selected' : '' %>>Realizado</option>
+                                    <option value="Cancelado" <%= typeof status !== 'undefined' && status === 'Cancelado' ? 'selected' : '' %>>Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <div class="d-flex gap-2 w-100">
+                                    <button type="submit" class="btn btn-search" title="Buscar">🔍</button>
+                                    <button type="button" class="btn btn-clear" onclick="limparPesquisa()" title="Limpar">🧹</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabela de Sorteios -->
+                <div class="card">
+                    <div class="card-body">
+                        <% if (typeof sorteios !== 'undefined' && sorteios && sorteios.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Processo</th>
+                                        <th>Juiz</th>
+                                        <th>Data Júri</th>
+                                        <th>Hora Júri</th>
+                                        <th>Sorteio</th>
+                                        <th>Local</th>
+                                        <th class="text-center">Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% sorteios.forEach(sorteio => { %>
+                                    <tr>
+                                        <td><%= sorteio.numero_processo %></td>
+                                        <td><%= sorteio.juiz_nome || '-' %></td>
+                                        <td><%= new Date(sorteio.data_juri + 'T00:00:00').toLocaleDateString('pt-BR') %></td>
+                                        <td><%= sorteio.hora_juri %></td>
+                                        <td><%= new Date(sorteio.data_realizacao + 'T00:00:00').toLocaleDateString('pt-BR') %></td>
+                                        <td><%= sorteio.local_sorteio %></td>
+                                        <td class="text-center">
+                                            <% 
+                                            let badgeClass = 'bg-secondary';
+                                            if (sorteio.status === 'Agendado') badgeClass = 'bg-warning';
+                                            else if (sorteio.status === 'Realizado') badgeClass = 'bg-success';
+                                            else if (sorteio.status === 'Cancelado') badgeClass = 'bg-danger';
+                                            %>
+                                            <span class="badge <%= badgeClass %>">
+                                                <%= sorteio.status %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="/sorteios/<%= sorteio.id %>" class="btn btn-view" title="Visualizar">👁️</a>
+                                                <a href="/sorteios/<%= sorteio.id %>/editar" class="btn btn-edit" title="Editar">✏️</a>
+                                                <button class="btn btn-delete" onclick="excluirSorteio(<%= sorteio.id %>)" title="Excluir">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-random fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhum sorteio cadastrado</h5>
+                            <p class="text-muted">Comece agendando o primeiro sorteio do sistema.</p>
+                            <a href="/sorteios/novo" class="btn btn-primary">
+                                ➕ Agendar Primeiro Sorteio
+                            </a>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Total de Jurados: <span id="total-jurados">-</span></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Total de Instituições: <span id="total-instituicoes">-</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/table-sort.js"></script>
+    <script>
+        // Funções JavaScript
+        function limparPesquisa() {
+            document.querySelector('form[action="/sorteios"]').reset();
+            window.location.href = '/sorteios';
+        }
+
+        function excluirSorteio(id) {
+            fetch(`/sorteios/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Sorteio excluído com sucesso!');
+                    location.reload();
+                } else {
+                    alert('Erro ao excluir sorteio: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao excluir sorteio: ' + error.message);
+            });
+        }
+
+
+        // Carregar totais no rodapé
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-instituicoes').textContent = data.totalInstituicoes || 0;
+                document.getElementById('total-jurados').textContent = data.totalJurados || 0;
+            })
+            .catch(error => console.error('Erro ao carregar estatísticas:', error));
+    </script>
+</body>
+</html>

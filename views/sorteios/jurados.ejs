@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header-custom">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/images/logo-tjsc.png" alt="Logo TJSC" class="header-logo me-3">
+                    <div>
+                        <h1 class="header-title">Controle de Jurados</h1>
+                        <p class="header-subtitle">Comarca de Capivari de Baixo</p>
+                    </div>
+                </div>
+                <% if (typeof user !== 'undefined' && user) { %>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 <%= user.nome %>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="/perfil">⚙️ Perfil</a></li>
+                        <% if (user.perfil === 'Administrador') { %>
+                        <li><a class="dropdown-item" href="/usuarios">👥 Usuários</a></li>
+                        <% } %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="/login/logout" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item">🚪 Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <% if (typeof user !== 'undefined' && user) { %>
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+                            📊 Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'juizes' ? 'active' : '' %>" href="/juizes">
+                            ⚖️ Juízes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'instituicoes' ? 'active' : '' %>" href="/instituicoes">
+                            🏢 Instituições
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'jurados' ? 'active' : '' %>" href="/jurados">
+                            👥 Jurados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'indicacoes' ? 'active' : '' %>" href="/indicacoes">
+                            📋 Indicações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'sorteios' ? 'active' : '' %>" href="/sorteios">
+                            🎲 Sorteios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'cedulas' ? 'active' : '' %>" href="/cedulas">
+                            🎫 Cédulas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'editais' ? 'active' : '' %>" href="/editais">
+                            📄 Editais
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'emails' ? 'active' : '' %>" href="/emails">
+                            📧 E-mails
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'relatorios' ? 'active' : '' %>" href="/relatorios">
+                            📊 Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'backup' ? 'active' : '' %>" href="/backup">
+                            💾 Backup
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <% } %>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <% if (typeof messages !== 'undefined' && messages) { %>
+                <% if (messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ <%= messages.success[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                <% if (messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ <%= messages.error[0] %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle btn-icon"></i><%= error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <% } %>
+
+            <div class="container-fluid">
+                <!-- Cabeçalho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2>Configurar Jurados do Sorteio</h2>
+                                <p class="text-muted mb-0">Processo: <%= sorteio.numero_processo || 'N/A' %> - Data do Júri: <%= sorteio.data_juri ? new Date(sorteio.data_juri + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A' %></p>
+                            </div>
+                            <div>
+                                <a href="/sorteios/<%= sorteio.id %>" class="btn btn-secondary">
+                                    ⬅️ Voltar ao Sorteio
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards de Contagem Titulares/Suplentes -->
+                <div class="row mb-4 stats-cards">
+                    <div class="col-md-6 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-primary fs-5" style="font-size: 48px !important;">👑</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Titulares</h5>
+                                        <h3 class="mb-0">
+                                            <% 
+                                            const titulares = typeof juradosSorteados !== 'undefined' && juradosSorteados 
+                                                ? juradosSorteados.filter(j => j.status === 'titular').length 
+                                                : 0;
+                                            %>
+                                            <%= titulares %>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card card-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="text-info fs-5" style="font-size: 48px !important;">🔄</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-0">Suplentes</h5>
+                                        <h3 class="mb-0">
+                                            <% 
+                                            const suplentes = typeof juradosSorteados !== 'undefined' && juradosSorteados 
+                                                ? juradosSorteados.filter(j => j.status === 'suplente').length 
+                                                : 0;
+                                            %>
+                                            <%= suplentes %>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conteúdo -->
+                <div class="row">
+                    <!-- Jurados Elegíveis -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">👥 Jurados Elegíveis (<span id="contadorElegiveis"><%= typeof juradosElegiveis !== 'undefined' && juradosElegiveis ? juradosElegiveis.filter(jurado => !juradosSorteados.map(j => j.jurado_id).includes(jurado.id)).length : 0 %></span>)</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Filtros -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label for="filtroNomeElegiveis" class="form-label">Nome</label>
+                                        <input type="text" class="form-control" id="filtroNomeElegiveis" placeholder="Buscar por nome...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="filtroCpfElegiveis" class="form-label">CPF</label>
+                                        <input type="text" class="form-control" id="filtroCpfElegiveis" placeholder="Buscar por CPF...">
+                                    </div>
+                                </div>
+                                <% 
+                                // Filtrar jurados que já estão no sorteio
+                                const juradosJaNoSorteio = juradosSorteados.map(j => j.jurado_id);
+                                const juradosDisponiveis = juradosElegiveis.filter(jurado => !juradosJaNoSorteio.includes(jurado.id));
+                                %>
+                                <% if (juradosDisponiveis && juradosDisponiveis.length > 0) { %>
+                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                    <table id="tabelaElegiveis" class="table table-sm table-hover">
+                                        <thead class="sticky-top bg-light">
+                                            <tr>
+                                                <th>Nome</th>
+                                                <th>CPF</th>
+                                                <th>Profissão</th>
+                                                <th>Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% 
+                                            // Filtrar jurados que já estão no sorteio
+                                            const juradosJaNoSorteio = juradosSorteados.map(j => j.jurado_id);
+                                            const juradosDisponiveis = juradosElegiveis.filter(jurado => !juradosJaNoSorteio.includes(jurado.id));
+                                            %>
+                                            <% juradosDisponiveis.forEach(jurado => { %>
+                                            <tr>
+                                                <td><%= jurado.nome_completo %></td>
+                                                <td><%= jurado.cpf %></td>
+                                                <td><%= jurado.profissao || 'N/A' %></td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-primary" onclick="adicionarJurado(<%= jurado.id %>, 'titular')" title="Adicionar como Titular">
+                                                            👑 Titular
+                                                        </button>
+                                                        <button class="btn btn-info" onclick="adicionarJurado(<%= jurado.id %>, 'suplente')" title="Adicionar como Suplente">
+                                                            🔄 Suplente
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } else { %>
+                                <div class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Nenhum jurado disponível</h5>
+                                    <p class="text-muted">Todos os jurados elegíveis já foram adicionados ao sorteio.</p>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jurados do Sorteio -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">🎲 Jurados do Sorteio (<span id="contadorSorteados"><%= typeof juradosSorteados !== 'undefined' ? juradosSorteados.length : 0 %></span>)</h5>
+                                <button type="button" class="btn btn-print btn-sm" id="btnImprimirJuradosSorteio" onclick="imprimirJuradosSorteio()" title="Imprimir">
+                                    🖨️
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <!-- Filtros -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label for="filtroNomeSorteados" class="form-label">Nome</label>
+                                        <input type="text" class="form-control" id="filtroNomeSorteados" placeholder="Buscar por nome...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="filtroCpfSorteados" class="form-label">CPF</label>
+                                        <input type="text" class="form-control" id="filtroCpfSorteados" placeholder="Buscar por CPF...">
+                                    </div>
+                                </div>
+                                <% if (typeof juradosSorteados !== 'undefined' && juradosSorteados && juradosSorteados.length > 0) { %>
+                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                    <table id="tabelaSorteados" class="table table-sm table-hover">
+                                        <thead class="sticky-top bg-light">
+                                            <tr>
+                                                <th>Nome</th>
+                                                <th>CPF</th>
+                                                <th>Status</th>
+                                                <th>Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% juradosSorteados.forEach(jurado => { %>
+                                            <tr>
+                                                <td><%= jurado.nome_completo %></td>
+                                                <td><%= jurado.cpf %></td>
+                                                <td>
+                                                    <% 
+                                                    let statusClass = 'bg-secondary';
+                                                    if (jurado.status === 'titular') statusClass = 'bg-primary';
+                                                    else if (jurado.status === 'suplente') statusClass = 'bg-info';
+                                                    %>
+                                                    <span class="badge <%= statusClass %>">
+                                                        <%= jurado.status %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-info btn-sm" onclick="alternarStatus(<%= jurado.jurado_id %>, '<%= jurado.status %>')" title="Alternar Status">
+                                                            🔀
+                                                        </button>
+                                                        <button class="btn btn-danger btn-sm" onclick="removerJurado(<%= jurado.jurado_id %>)" title="Remover do Sorteio">
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } else { %>
+                                <div class="text-center py-4">
+                                    <i class="fas fa-dice fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Nenhum jurado adicionado</h5>
+                                    <p class="text-muted">Adicione jurados elegíveis ao sorteio usando os botões ao lado.</p>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">📋 Informações</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h6>👑 Titulares</h6>
+                                        <p class="text-muted small mb-0">
+                                            Jurados que participarão efetivamente do júri.
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6>🔄 Suplentes</h6>
+                                        <p class="text-muted small mb-0">
+                                            Jurados que podem substituir os titulares se necessário.
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6>📅 Elegibilidade</h6>
+                                        <p class="text-muted small mb-0">
+                                            Jurados elegíveis são aqueles ativos e não suspensos para o ano <%= sorteio.ano_referencia %>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer-custom mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">© 2025 Tribunal de Justiça de Santa Catarina - TJSC</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Sistema de Controle de Jurados - Comarca de Capivari de Baixo</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/table-sort.js"></script>
+    <script>
+        // Função para filtrar tabela por nome e CPF
+        function filtrarTabela(tabelaId, filtroNomeId, filtroCpfId, contadorId) {
+            const tabela = document.getElementById(tabelaId);
+            const filtroNome = document.getElementById(filtroNomeId);
+            const filtroCpf = document.getElementById(filtroCpfId);
+            const contador = document.getElementById(contadorId);
+            
+            if (!tabela || !filtroNome || !filtroCpf) return;
+            
+            const tbody = tabela.querySelector('tbody');
+            if (!tbody) return;
+            
+            const linhas = Array.from(tbody.querySelectorAll('tr'));
+            const nomeBusca = filtroNome.value.toLowerCase().trim();
+            const cpfBusca = filtroCpf.value.toLowerCase().trim();
+            
+            let linhasVisiveis = 0;
+            
+            linhas.forEach(function(linha) {
+                // Ignorar linhas que já estão ocultas por outros motivos
+                if (linha.style.display === 'none' && !nomeBusca && !cpfBusca) {
+                    return;
+                }
+                
+                const nome = linha.cells[0] ? linha.cells[0].textContent.toLowerCase().trim() : '';
+                const cpf = linha.cells[1] ? linha.cells[1].textContent.toLowerCase().trim() : '';
+                
+                const correspondeNome = !nomeBusca || nome.includes(nomeBusca);
+                const correspondeCpf = !cpfBusca || cpf.includes(cpfBusca);
+                
+                if (correspondeNome && correspondeCpf) {
+                    linha.style.display = '';
+                    linhasVisiveis++;
+                } else {
+                    linha.style.display = 'none';
+                }
+            });
+            
+            // Atualizar contador
+            if (contador) {
+                contador.textContent = linhasVisiveis;
+            }
+        }
+        
+        // Event listeners para filtros da tabela de elegíveis
+        document.addEventListener('DOMContentLoaded', function() {
+            const filtroNomeElegiveis = document.getElementById('filtroNomeElegiveis');
+            const filtroCpfElegiveis = document.getElementById('filtroCpfElegiveis');
+            
+            if (filtroNomeElegiveis) {
+                filtroNomeElegiveis.addEventListener('input', function() {
+                    filtrarTabela('tabelaElegiveis', 'filtroNomeElegiveis', 'filtroCpfElegiveis', 'contadorElegiveis');
+                });
+            }
+            
+            if (filtroCpfElegiveis) {
+                filtroCpfElegiveis.addEventListener('input', function() {
+                    filtrarTabela('tabelaElegiveis', 'filtroNomeElegiveis', 'filtroCpfElegiveis', 'contadorElegiveis');
+                });
+            }
+            
+            // Event listeners para filtros da tabela de sorteados
+            const filtroNomeSorteados = document.getElementById('filtroNomeSorteados');
+            const filtroCpfSorteados = document.getElementById('filtroCpfSorteados');
+            
+            if (filtroNomeSorteados) {
+                filtroNomeSorteados.addEventListener('input', function() {
+                    filtrarTabela('tabelaSorteados', 'filtroNomeSorteados', 'filtroCpfSorteados', 'contadorSorteados');
+                });
+            }
+            
+            if (filtroCpfSorteados) {
+                filtroCpfSorteados.addEventListener('input', function() {
+                    filtrarTabela('tabelaSorteados', 'filtroNomeSorteados', 'filtroCpfSorteados', 'contadorSorteados');
+                });
+            }
+            
+            // Reinicializar ordenação após um pequeno delay para garantir que as tabelas estão carregadas
+            setTimeout(function() {
+                if (window.initTableSorting) {
+                    window.initTableSorting();
+                }
+            }, 200);
+        });
+        
+        function adicionarJurado(juradoId, status) {
+            fetch(`/sorteios/<%= sorteio.id %>/jurados`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jurado_id: juradoId,
+                    status: status
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao adicionar jurado: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao adicionar jurado: ' + error.message);
+            });
+        }
+
+        function alternarStatus(juradoId, statusAtual) {
+            const novoStatus = statusAtual === 'titular' ? 'suplente' : 'titular';
+            fetch(`/sorteios/<%= sorteio.id %>/jurados/${juradoId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao alternar status: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao alternar status: ' + error.message);
+            });
+        }
+
+        function removerJurado(juradoId) {
+            fetch(`/sorteios/<%= sorteio.id %>/jurados/${juradoId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Jurado removido com sucesso!');
+                    location.reload();
+                } else {
+                    alert('Erro ao remover jurado: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao remover jurado: ' + error.message);
+            });
+        }
+
+        function imprimirJuradosSorteio() {
+            // Dados do sorteio (processados pelo EJS)
+            const numeroProcesso = '<%= sorteio.numero_processo || "N/A" %>';
+            const dataJuri = '<%= sorteio.data_juri ? new Date(sorteio.data_juri + "T00:00:00").toLocaleDateString("pt-BR") : "N/A" %>';
+            
+            // Obter dados dos jurados sorteados da tabela
+            const tabela = document.getElementById('tabelaSorteados');
+            if (!tabela) {
+                alert('Nenhum jurado encontrado para imprimir.');
+                return;
+            }
+
+            const tbody = tabela.querySelector('tbody');
+            if (!tbody) {
+                alert('Nenhum jurado encontrado para imprimir.');
+                return;
+            }
+
+            const linhas = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Extrair dados dos jurados
+            const jurados = linhas.map(linha => {
+                const nome = linha.cells[0] ? linha.cells[0].textContent.trim() : '';
+                const cpf = linha.cells[1] ? linha.cells[1].textContent.trim() : '';
+                const statusBadge = linha.cells[2] ? linha.cells[2].querySelector('span.badge') : null;
+                const statusTexto = statusBadge ? statusBadge.textContent.trim() : '';
+                // Normalizar status: "titular" ou "suplente"
+                const status = statusTexto.toLowerCase() === 'titular' ? 'titular' : 'suplente';
+                
+                return { nome, cpf, status };
+            }).filter(j => j.nome !== ''); // Filtrar linhas vazias
+
+            if (jurados.length === 0) {
+                alert('Nenhum jurado encontrado para imprimir.');
+                return;
+            }
+
+            // Ordenar: primeiro titulares (em ordem alfabética), depois suplentes (em ordem alfabética)
+            jurados.sort((a, b) => {
+                // Primeiro ordenar por status (titular antes de suplente)
+                if (a.status !== b.status) {
+                    if (a.status === 'titular') return -1;
+                    if (b.status === 'titular') return 1;
+                }
+                // Se o status for igual, ordenar por nome alfabeticamente
+                return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+            });
+
+            // Contar titulares e suplentes
+            const totalTitulares = jurados.filter(j => j.status === 'titular').length;
+            const totalSuplentes = jurados.filter(j => j.status === 'suplente').length;
+
+            // Criar HTML para impressão
+            const htmlImpressao = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurados do Sorteio - Impressão</title>
+    <style>
+        @page {
+            margin: 2cm;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .quantidades {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            font-weight: normal;
+            color: #333;
+        }
+        .info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        thead {
+            background-color: #f5f5f5;
+        }
+        th {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            font-size: 11px;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+        .badge-titular {
+            background-color: #007bff;
+            color: white;
+        }
+        .badge-suplente {
+            background-color: #17a2b8;
+            color: white;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            @page {
+                margin: 1cm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Jurados do Sorteio</h1>
+    <div class="quantidades">
+        Titulares: ${totalTitulares} | Suplentes: ${totalSuplentes}
+    </div>
+    <div class="info">
+        Processo: ${numeroProcesso} - Data do Júri: ${dataJuri}
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${jurados.map(jurado => `
+                <tr>
+                    <td>${jurado.nome}</td>
+                    <td>${jurado.cpf}</td>
+                    <td><span class="badge badge-${jurado.status}">${jurado.status}</span></td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+</body>
+</html>
+            `;
+
+            // Abrir janela de impressão
+            const janelaImpressao = window.open('', '_blank');
+            
+            if (!janelaImpressao) {
+                alert('Por favor, permita pop-ups para imprimir.');
+                return;
+            }
+            
+            janelaImpressao.document.write(htmlImpressao);
+            janelaImpressao.document.close();
+            
+            // Aguardar o carregamento e imprimir
+            janelaImpressao.onload = function() {
+                setTimeout(() => {
+                    // Adicionar listener para o evento afterprint (disparado quando impressão é concluída ou cancelada)
+                    janelaImpressao.addEventListener('afterprint', function() {
+                        setTimeout(() => {
+                            if (!janelaImpressao.closed) {
+                                janelaImpressao.close();
+                            }
+                        }, 100);
+                    });
+                    
+                    // Tentar capturar também o evento beforeprint para garantir o listener está ativo
+                    janelaImpressao.addEventListener('beforeprint', function() {
+                        // Listener ativo
+                    });
+                    
+                    // Abrir diálogo de impressão
+                    janelaImpressao.print();
+                    
+                    // Fallback: fechar a janela após um tempo se ainda estiver aberta
+                    // Isso garante que a janela seja fechada mesmo se o evento afterprint não disparar
+                    setTimeout(() => {
+                        if (!janelaImpressao.closed) {
+                            janelaImpressao.close();
+                        }
+                    }, 2000);
+                }, 250);
+            };
+            
+            // Fechar automaticamente se a janela for fechada manualmente pelo usuário
+            // Isso é verificado via polling
+            let tentativasFechamento = 0;
+            const verificarFechamento = setInterval(() => {
+                tentativasFechamento++;
+                if (janelaImpressao.closed) {
+                    clearInterval(verificarFechamento);
+                } else if (tentativasFechamento > 50) {
+                    // Após 5 segundos (50 * 100ms), parar de verificar
+                    clearInterval(verificarFechamento);
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>

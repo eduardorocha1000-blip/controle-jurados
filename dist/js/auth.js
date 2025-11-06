@@ -29,12 +29,31 @@ async function fazerLogin() {
             body: JSON.stringify({ email, senha })
         });
         
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Erro ao fazer login');
+        // Verificar se a resposta tem conteúdo
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Resposta inválida do servidor: ${text || 'Resposta vazia'}`);
         }
         
-        const data = await response.json();
+        if (!response.ok) {
+            let error;
+            try {
+                error = await response.json();
+            } catch (e) {
+                const text = await response.text();
+                throw new Error(`Erro ${response.status}: ${text || 'Erro desconhecido'}`);
+            }
+            throw new Error(error.error || error.message || 'Erro ao fazer login');
+        }
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            const text = await response.text();
+            throw new Error(`Resposta JSON inválida: ${text || 'Resposta vazia'}`);
+        }
         
         // Armazenar token JWT
         localStorage.setItem('token', data.token);

@@ -1,10 +1,8 @@
-// API de autenticação para Cloudflare Pages
-// Substitui routes/auth.js
+// Handler específico para /api/auth/login
+// Cloudflare Pages Functions usa estrutura de pastas para rotas
 
 export async function onRequestPost(context) {
-    const { request, env, params } = context;
-    const url = new URL(request.url);
-    const path = url.pathname.split('/').pop();
+    const { request, env } = context;
     
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
@@ -12,15 +10,11 @@ export async function onRequestPost(context) {
         'Access-Control-Allow-Headers': 'Content-Type',
     };
     
-    if (path === 'login') {
-        return await fazerLogin(request, env, corsHeaders);
+    // Handle OPTIONS
+    if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
     }
     
-    return new Response('Not found', { status: 404, headers: corsHeaders });
-}
-
-// Fazer login
-async function fazerLogin(request, env, corsHeaders) {
     try {
         // Verificar se o banco está disponível
         if (!env.DB) {
@@ -95,7 +89,10 @@ async function fazerLogin(request, env, corsHeaders) {
         });
     } catch (error) {
         console.error('Erro no login:', error);
-        return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
+        return new Response(JSON.stringify({ 
+            error: error.message || 'Erro interno do servidor',
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -118,30 +115,5 @@ async function gerarToken(usuario, env) {
     // Por enquanto, retornar um token base64 simples
     const tokenData = btoa(JSON.stringify(payload));
     return tokenData;
-}
-
-// Verificar token (para uso em outras rotas)
-export async function verificarToken(request, env) {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return null;
-    }
-    
-    const token = authHeader.substring(7);
-    
-    try {
-        // TODO: Implementar verificação JWT real
-        const payload = JSON.parse(atob(token));
-        
-        // Verificar expiração
-        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-            return null;
-        }
-        
-        return payload;
-    } catch (e) {
-        return null;
-    }
 }
 

@@ -48,14 +48,24 @@ async function carregarJurados() {
                 window.location.href = '/index.html';
                 return;
             }
-            throw new Error('Erro ao carregar jurados');
+            
+            // Tentar obter mensagem de erro detalhada
+            let errorMessage = 'Erro ao carregar jurados';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.details || errorMessage;
+            } catch (e) {
+                errorMessage = `Erro ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         const jurados = await response.json();
         exibirJurados(jurados);
     } catch (error) {
         console.error('Erro:', error);
-        mostrarErro('Erro ao carregar jurados. Tente novamente.');
+        console.error('Detalhes:', error.message);
+        mostrarErro(error.message || 'Erro ao carregar jurados. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }

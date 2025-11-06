@@ -48,14 +48,24 @@ async function carregarIndicacoes() {
                 window.location.href = '/index.html';
                 return;
             }
-            throw new Error('Erro ao carregar indicações');
+            
+            // Tentar obter mensagem de erro detalhada
+            let errorMessage = 'Erro ao carregar indicações';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.details || errorMessage;
+            } catch (e) {
+                errorMessage = `Erro ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         const indicacoes = await response.json();
         exibirIndicacoes(indicacoes);
     } catch (error) {
         console.error('Erro:', error);
-        mostrarErro('Erro ao carregar indicações. Tente novamente.');
+        console.error('Detalhes:', error.message);
+        mostrarErro(error.message || 'Erro ao carregar indicações. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }

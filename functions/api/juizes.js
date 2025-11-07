@@ -67,58 +67,99 @@ async function listarJuizes(request, env, corsHeaders) {
             });
         }
 
+        const colunasJuizes = await getTableColumns(env, 'juizes');
+
+        const nomeCol = colunasJuizes.has('nome_completo')
+            ? 'nome_completo'
+            : (colunasJuizes.has('nome') ? 'nome' : null);
+        const matriculaCol = colunasJuizes.has('matricula');
+        const varaCol = colunasJuizes.has('vara');
+        const comarcaCol = colunasJuizes.has('comarca');
+        const sexoCol = colunasJuizes.has('sexo');
+        const titularCol = colunasJuizes.has('titular');
+        const telefoneCol = colunasJuizes.has('telefone');
+        const emailCol = colunasJuizes.has('email');
+        const statusCol = colunasJuizes.has('status');
+        const observacoesCol = colunasJuizes.has('observacoes');
+        const createdCol = colunasJuizes.has('created_at');
+        const updatedCol = colunasJuizes.has('updated_at');
+
         const url = new URL(request.url);
         const status = url.searchParams.get('status');
         const titular = url.searchParams.get('titular');
         const busca = url.searchParams.get('busca');
 
+        const selectCampos = [
+            'j.id',
+            nomeCol ? `j.${nomeCol} AS nome` : 'NULL AS nome',
+            nomeCol ? `j.${nomeCol} AS nome_completo` : 'NULL AS nome_completo',
+            matriculaCol ? 'j.matricula' : 'NULL AS matricula',
+            sexoCol ? 'j.sexo' : 'NULL AS sexo',
+            varaCol ? 'j.vara' : 'NULL AS vara',
+            comarcaCol ? 'j.comarca' : 'NULL AS comarca',
+            emailCol ? 'j.email' : 'NULL AS email',
+            titularCol ? 'j.titular' : 'NULL AS titular',
+            telefoneCol ? 'j.telefone' : 'NULL AS telefone',
+            statusCol ? 'j.status' : 'NULL AS status',
+            observacoesCol ? 'j.observacoes' : 'NULL AS observacoes',
+            createdCol ? 'j.created_at' : 'NULL AS created_at',
+            updatedCol ? 'j.updated_at' : 'NULL AS updated_at',
+            varaCol ? 'j.vara AS cargo' : (colunasJuizes.has('cargo') ? 'j.cargo' : 'NULL AS cargo')
+        ];
+
         let query = `
             SELECT
-                j.id,
-                j.nome_completo,
-                j.matricula,
-                j.sexo,
-                j.vara,
-                j.comarca,
-                j.email,
-                j.titular,
-                j.telefone,
-                j.status,
-                j.observacoes,
-                j.created_at,
-                j.updated_at,
-                j.nome_completo AS nome,
-                j.vara AS cargo
+                ${selectCampos.join(',\n                ')}
             FROM juizes j
             WHERE 1=1
         `;
         const params = [];
 
         if (status) {
-            query += ' AND j.status = ?';
-            params.push(status);
+            if (statusCol) {
+                query += ' AND j.status = ?';
+                params.push(status);
+            }
         }
 
         if (titular) {
-            query += ' AND j.titular = ?';
-            params.push(titular);
+            if (titularCol) {
+                query += ' AND j.titular = ?';
+                params.push(titular);
+            }
         }
 
         if (busca) {
-            query += `
-                AND (
-                    j.nome_completo LIKE ?
-                    OR j.email LIKE ?
-                    OR j.comarca LIKE ?
-                    OR j.vara LIKE ?
-                    OR j.matricula LIKE ?
-                )
-            `;
+            const camposBusca = [];
             const buscaParam = `%${busca}%`;
-            params.push(buscaParam, buscaParam, buscaParam, buscaParam, buscaParam);
+            if (nomeCol) {
+                camposBusca.push(`j.${nomeCol} LIKE ?`);
+                params.push(buscaParam);
+            }
+            if (emailCol) {
+                camposBusca.push('j.email LIKE ?');
+                params.push(buscaParam);
+            }
+            if (comarcaCol) {
+                camposBusca.push('j.comarca LIKE ?');
+                params.push(buscaParam);
+            }
+            if (varaCol) {
+                camposBusca.push('j.vara LIKE ?');
+                params.push(buscaParam);
+            }
+            if (matriculaCol) {
+                camposBusca.push('j.matricula LIKE ?');
+                params.push(buscaParam);
+            }
+
+            if (camposBusca.length > 0) {
+                query += ` AND (${camposBusca.join(' OR ')})`;
+            }
         }
 
-        query += ' ORDER BY j.nome_completo';
+        const colunaOrdenacao = nomeCol ? `j.${nomeCol}` : 'j.id';
+        query += ` ORDER BY ${colunaOrdenacao}`;
 
         console.log('[juizes] Executando query:', query, 'Params:', params);
 
@@ -153,6 +194,8 @@ async function criarJuiz(request, env, corsHeaders) {
         });
     }
 
+    const colunasJuizes = await getTableColumns(env, 'juizes');
+
     const data = await safeJson(request);
     if (!data.success) {
         return new Response(JSON.stringify({ error: 'JSON inválido', details: data.error }), {
@@ -180,51 +223,35 @@ async function criarJuiz(request, env, corsHeaders) {
 
     const insertData = {
         nome_completo: nomeBruto.toUpperCase(),
-        matricula: payload.matricula || null,
-        sexo: payload.sexo,
-        vara: (payload.vara || payload.cargo || 'Vara Única').toUpperCase(),
-        comarca: (payload.comarca || 'Capivari de Baixo').toUpperCase(),
-        email: payload.email ? payload.email.toLowerCase() : null,
-        titular: payload.titular || 'Não',
-        telefone: payload.telefone || null,
-        status: payload.status || 'Ativo',
-        observacoes: payload.observacoes ? payload.observacoes.toUpperCase() : null
+        matricula: colunasJuizes.has('matricula') ? (payload.matricula || null) : undefined,
+        sexo: colunasJuizes.has('sexo') ? payload.sexo : undefined,
+        vara: colunasJuizes.has('vara') ? (payload.vara || payload.cargo || 'Vara Única').toUpperCase() : undefined,
+        comarca: colunasJuizes.has('comarca') ? (payload.comarca || 'Capivari de Baixo').toUpperCase() : undefined,
+        email: colunasJuizes.has('email') ? (payload.email ? payload.email.toLowerCase() : null) : undefined,
+        titular: colunasJuizes.has('titular') ? (payload.titular || 'Não') : undefined,
+        telefone: colunasJuizes.has('telefone') ? (payload.telefone || null) : undefined,
+        status: colunasJuizes.has('status') ? (payload.status || 'Ativo') : undefined,
+        observacoes: colunasJuizes.has('observacoes') ? (payload.observacoes ? payload.observacoes.toUpperCase() : null) : undefined
     };
 
-    const result = await env.DB.prepare(`
-        INSERT INTO juizes (
-            nome_completo,
-            matricula,
-            sexo,
-            vara,
-            comarca,
-            email,
-            titular,
-            telefone,
-            status,
-            observacoes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-        insertData.nome_completo,
-        insertData.matricula,
-        insertData.sexo,
-        insertData.vara,
-        insertData.comarca,
-        insertData.email,
-        insertData.titular,
-        insertData.telefone,
-        insertData.status,
-        insertData.observacoes
-    ).run();
+    const campos = ['nome_completo'];
+    const placeholders = ['?'];
+    const valores = [insertData.nome_completo];
 
-    const juiz = await env.DB.prepare(`
-        SELECT
-            j.*,
-            j.nome_completo as nome,
-            j.vara as cargo
-        FROM juizes j
-        WHERE j.id = ?
-    `).bind(result.meta.last_row_id).first();
+    const possiveisCampos = ['matricula', 'sexo', 'vara', 'comarca', 'email', 'titular', 'telefone', 'status', 'observacoes'];
+    for (const campo of possiveisCampos) {
+        if (insertData[campo] !== undefined) {
+            campos.push(campo);
+            placeholders.push('?');
+            valores.push(insertData[campo]);
+        }
+    }
+
+    const result = await env.DB.prepare(`
+        INSERT INTO juizes (${campos.join(', ')}) VALUES (${placeholders.join(', ')})
+    `).bind(...valores).run();
+
+    const juiz = await env.DB.prepare('SELECT * FROM juizes WHERE id = ?').bind(result.meta.last_row_id).first();
 
     return new Response(JSON.stringify(mapearJuiz(juiz)), {
         status: 201,
@@ -252,6 +279,8 @@ async function atualizarJuiz(id, request, env, corsHeaders) {
         });
     }
 
+    const colunasJuizes = await getTableColumns(env, 'juizes');
+
     const data = await safeJson(request);
     if (!data.success) {
         return new Response(JSON.stringify({ error: 'JSON inválido', details: data.error }), {
@@ -265,44 +294,44 @@ async function atualizarJuiz(id, request, env, corsHeaders) {
     const values = [];
 
     if (payload.nome !== undefined || payload.nome_completo !== undefined) {
-        updates.push('nome_completo = ?');
         const nomeAtualizado = (payload.nome || payload.nome_completo || '').toString().toUpperCase();
+        updates.push('nome_completo = ?');
         values.push(nomeAtualizado);
     }
-    if (payload.matricula !== undefined) {
+    if (payload.matricula !== undefined && colunasJuizes.has('matricula')) {
         updates.push('matricula = ?');
         values.push(payload.matricula || null);
     }
-    if (payload.sexo !== undefined) {
+    if (payload.sexo !== undefined && colunasJuizes.has('sexo')) {
         updates.push('sexo = ?');
         values.push(payload.sexo || null);
     }
-    if (payload.vara !== undefined || payload.cargo !== undefined) {
+    if ((payload.vara !== undefined || payload.cargo !== undefined) && colunasJuizes.has('vara')) {
         updates.push('vara = ?');
         const varaAtualizada = (payload.vara || payload.cargo || '').toString().toUpperCase();
         values.push(varaAtualizada || 'VARA ÚNICA');
     }
-    if (payload.comarca !== undefined) {
+    if (payload.comarca !== undefined && colunasJuizes.has('comarca')) {
         updates.push('comarca = ?');
         values.push(payload.comarca ? payload.comarca.toUpperCase() : 'CAPIVARI DE BAIXO');
     }
-    if (payload.email !== undefined) {
+    if (payload.email !== undefined && colunasJuizes.has('email')) {
         updates.push('email = ?');
         values.push(payload.email ? payload.email.toLowerCase() : null);
     }
-    if (payload.titular !== undefined) {
+    if (payload.titular !== undefined && colunasJuizes.has('titular')) {
         updates.push('titular = ?');
         values.push(payload.titular);
     }
-    if (payload.telefone !== undefined) {
+    if (payload.telefone !== undefined && colunasJuizes.has('telefone')) {
         updates.push('telefone = ?');
         values.push(payload.telefone || null);
     }
-    if (payload.status !== undefined) {
+    if (payload.status !== undefined && colunasJuizes.has('status')) {
         updates.push('status = ?');
         values.push(payload.status);
     }
-    if (payload.observacoes !== undefined) {
+    if (payload.observacoes !== undefined && colunasJuizes.has('observacoes')) {
         updates.push('observacoes = ?');
         values.push(payload.observacoes ? payload.observacoes.toUpperCase() : null);
     }
@@ -321,14 +350,7 @@ async function atualizarJuiz(id, request, env, corsHeaders) {
         UPDATE juizes SET ${updates.join(', ')} WHERE id = ?
     `).bind(...values).run();
 
-    const juiz = await env.DB.prepare(`
-        SELECT 
-            j.*,
-            j.nome_completo AS nome,
-            j.vara AS cargo
-        FROM juizes j
-        WHERE j.id = ?
-    `).bind(id).first();
+    const juiz = await env.DB.prepare('SELECT * FROM juizes WHERE id = ?').bind(id).first();
 
     return new Response(JSON.stringify(mapearJuiz(juiz)), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -366,8 +388,9 @@ function mapearJuiz(juiz) {
     if (!juiz) return juiz;
     return {
         ...juiz,
-        nome: juiz.nome || juiz.nome_completo || null,
-        cargo: juiz.cargo || juiz.vara || null
+        nome: juiz.nome ?? juiz.nome_completo ?? null,
+        nome_completo: juiz.nome_completo ?? juiz.nome ?? null,
+        cargo: juiz.cargo ?? juiz.vara ?? null
     };
 }
 
@@ -378,6 +401,22 @@ async function safeJson(request) {
     } catch (error) {
         console.error('Falha ao ler JSON:', error);
         return { success: false, error: error.message || 'JSON inválido' };
+    }
+}
+
+async function getTableColumns(env, tableName) {
+    try {
+        const result = await env.DB.prepare(`SELECT name FROM pragma_table_info('${tableName}')`).all();
+        const colunas = new Set();
+        for (const row of result.results || []) {
+            if (row.name) {
+                colunas.add(row.name);
+            }
+        }
+        return colunas;
+    } catch (error) {
+        console.warn(`Não foi possível obter colunas da tabela ${tableName}:`, error);
+        return new Set();
     }
 }
 

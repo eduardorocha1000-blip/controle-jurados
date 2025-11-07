@@ -67,39 +67,84 @@ async function listarCedulas(request, env, corsHeaders) {
             });
         }
 
+        const colunasCedulas = await getTableColumns(env, 'cedulas');
+        const colunasSorteios = await getTableColumns(env, 'sorteios');
+        const colunasJuizes = await getTableColumns(env, 'juizes');
+
+        const numeroCedulaCol = colunasCedulas.has('numero_cedula') ? 'numero_cedula' : null;
+        const numeroSequencialCol = colunasCedulas.has('numero_sequencial') ? 'numero_sequencial' : null;
+        const statusCol = colunasCedulas.has('status') ? 'status' : null;
+        const createdCol = colunasCedulas.has('created_at') ? 'created_at' : null;
+        const updatedCol = colunasCedulas.has('updated_at') ? 'updated_at' : null;
+
+        const sorteioIdCol = colunasCedulas.has('sorteio_id') ? 'sorteio_id' : null;
+
+        const sorteioNumeroCol = colunasSorteios.has('numero_processo') ? 'numero_processo' : null;
+        const sorteioAnoCol = colunasSorteios.has('ano_referencia')
+            ? 'ano_referencia'
+            : (colunasSorteios.has('ano') ? 'ano' : null);
+        const sorteioDataCol = colunasSorteios.has('data_juri')
+            ? 'data_juri'
+            : (colunasSorteios.has('data_sessao') ? 'data_sessao' : null);
+        const sorteioHoraCol = colunasSorteios.has('hora_juri') ? 'hora_juri' : null;
+        const sorteioLocalCol = colunasSorteios.has('local_sorteio')
+            ? 'local_sorteio'
+            : (colunasSorteios.has('local') ? 'local' : null);
+        const sorteioJuizIdCol = colunasSorteios.has('juiz_responsavel_id') ? 'juiz_responsavel_id' : null;
+
+        const juizNomeCol = colunasJuizes.has('nome_completo')
+            ? 'nome_completo'
+            : (colunasJuizes.has('nome') ? 'nome' : null);
+
         const url = new URL(request.url);
         const sorteio_id = url.searchParams.get('sorteio_id');
         const status = url.searchParams.get('status');
         
+        const camposSelect = [
+            'c.id',
+            sorteioIdCol ? `c.${sorteioIdCol} AS sorteio_id` : 'NULL AS sorteio_id',
+            numeroCedulaCol ? `c.${numeroCedulaCol}` : 'NULL AS numero_cedula',
+            numeroSequencialCol ? `c.${numeroSequencialCol}` : 'NULL AS numero_sequencial',
+            statusCol ? `COALESCE(c.${statusCol}, 'Gerada') AS status` : `'Gerada' AS status`,
+            createdCol ? `c.${createdCol} AS created_at` : 'NULL AS created_at',
+            updatedCol ? `c.${updatedCol} AS updated_at` : 'NULL AS updated_at',
+            sorteioNumeroCol ? `s.${sorteioNumeroCol} AS numero_processo` : 'NULL AS numero_processo',
+            sorteioDataCol ? `s.${sorteioDataCol} AS data_juri` : 'NULL AS data_juri',
+            sorteioHoraCol ? `s.${sorteioHoraCol} AS hora_juri` : 'NULL AS hora_juri',
+            sorteioLocalCol ? `s.${sorteioLocalCol} AS local_sorteio` : 'NULL AS local_sorteio',
+            sorteioAnoCol ? `s.${sorteioAnoCol} AS ano_referencia` : 'NULL AS ano_referencia',
+            juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
+        ];
+
+        const joinSorteios = sorteioIdCol ? 'LEFT JOIN sorteios s ON c.sorteio_id = s.id' : '';
+        const joinJuizes = (sorteioJuizIdCol && juizNomeCol) ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
+
         let query = `
             SELECT 
-                c.*,
-                c.numero_sequencial as numero_cedula,
-                COALESCE(c.status, 'Gerada') as status,
-                s.numero_processo,
-                s.data_juri,
-                s.hora_juri,
-                s.local_sorteio,
-                s.ano_referencia,
-                j.nome_completo as juiz_nome
+                ${camposSelect.join(',\n                ')}
             FROM cedulas c
-            LEFT JOIN sorteios s ON c.sorteio_id = s.id
-            LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
+            ${joinSorteios}
+            ${joinJuizes}
             WHERE 1=1
         `;
         const params = [];
         
         if (sorteio_id) {
-            query += ' AND c.sorteio_id = ?';
-            params.push(sorteio_id);
+            if (sorteioIdCol) {
+                query += ` AND c.${sorteioIdCol} = ?`;
+                params.push(sorteio_id);
+            }
         }
         
         if (status) {
-            query += ' AND COALESCE(c.status, \'Gerada\') = ?';
-            params.push(status);
+            if (statusCol) {
+                query += ` AND COALESCE(c.${statusCol}, 'Gerada') = ?`;
+                params.push(status);
+            }
         }
         
-        query += ' ORDER BY c.created_at DESC';
+        const colunaOrdenacao = createdCol ? `c.${createdCol}` : 'c.id';
+        query += ` ORDER BY ${colunaOrdenacao} DESC`;
         
         console.log('[cedulas] Executando query:', query, 'Params:', params);
 
@@ -151,38 +196,36 @@ async function criarCedula(request, env, corsHeaders) {
     }
     
     // Preparar dados
+    const colunasCedulas = await getTableColumns(env, 'cedulas');
     const insertData = {
-        sorteio_id: data.sorteio_id,
-        numero_cedula: data.numero_cedula || null,
-        numero_sequencial: data.numero_sequencial || data.numero_cedula || null,
-        status: data.status || 'Gerada'
+        sorteio_id: colunasCedulas.has('sorteio_id') ? data.sorteio_id : undefined,
+        numero_cedula: colunasCedulas.has('numero_cedula') ? (data.numero_cedula || null) : undefined,
+        numero_sequencial: colunasCedulas.has('numero_sequencial')
+            ? (data.numero_sequencial || data.numero_cedula || null)
+            : undefined,
+        status: colunasCedulas.has('status') ? (data.status || 'Gerada') : undefined
     };
     
     // Inserir
+    const campos = ['sorteio_id', 'numero_cedula', 'numero_sequencial', 'status'];
+    const camposPresentes = [];
+    const placeholders = [];
+    const valores = [];
+    for (const campo of campos) {
+        if (insertData[campo] !== undefined) {
+            camposPresentes.push(campo);
+            placeholders.push('?');
+            valores.push(insertData[campo]);
+        }
+    }
+
     const result = await env.DB.prepare(`
-        INSERT INTO cedulas (
-            sorteio_id, numero_cedula, numero_sequencial, status
-        ) VALUES (?, ?, ?, ?)
-    `).bind(
-        insertData.sorteio_id, insertData.numero_cedula, insertData.numero_sequencial, insertData.status
-    ).run();
+        INSERT INTO cedulas (${camposPresentes.join(', ')})
+        VALUES (${placeholders.join(', ')})
+    `).bind(...valores).run();
     
     // Buscar a cédula criada
-    const cedula = await env.DB.prepare(`
-        SELECT 
-            c.*,
-            c.numero_sequencial as numero_cedula,
-            COALESCE(c.status, 'Gerada') as status,
-            s.numero_processo,
-            s.data_juri,
-            s.hora_juri,
-            s.ano_referencia,
-            j.nome_completo as juiz_nome
-        FROM cedulas c
-        LEFT JOIN sorteios s ON c.sorteio_id = s.id
-        LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
-        WHERE c.id = ?
-    `).bind(result.meta.last_row_id).first();
+    const cedula = await env.DB.prepare('SELECT * FROM cedulas WHERE id = ?').bind(result.meta.last_row_id).first();
     
     return new Response(JSON.stringify(cedula), {
         status: 201,
@@ -224,19 +267,19 @@ async function atualizarCedula(id, request, env, corsHeaders) {
     const updates = [];
     const values = [];
     
-    if (data.sorteio_id !== undefined) {
+    if (data.sorteio_id !== undefined && colunasCedulas.has('sorteio_id')) {
         updates.push('sorteio_id = ?');
         values.push(data.sorteio_id);
     }
-    if (data.numero_cedula !== undefined) {
+    if (data.numero_cedula !== undefined && colunasCedulas.has('numero_cedula')) {
         updates.push('numero_cedula = ?');
         values.push(data.numero_cedula);
     }
-    if (data.numero_sequencial !== undefined) {
+    if (data.numero_sequencial !== undefined && colunasCedulas.has('numero_sequencial')) {
         updates.push('numero_sequencial = ?');
         values.push(data.numero_sequencial);
     }
-    if (data.status !== undefined) {
+    if (data.status !== undefined && colunasCedulas.has('status')) {
         updates.push('status = ?');
         values.push(data.status);
     }
@@ -256,21 +299,7 @@ async function atualizarCedula(id, request, env, corsHeaders) {
     `).bind(...values).run();
     
     // Buscar atualizada
-    const cedula = await env.DB.prepare(`
-        SELECT 
-            c.*,
-            c.numero_sequencial as numero_cedula,
-            COALESCE(c.status, 'Gerada') as status,
-            s.numero_processo,
-            s.data_juri,
-            s.hora_juri,
-            s.ano_referencia,
-            j.nome_completo as juiz_nome
-        FROM cedulas c
-        LEFT JOIN sorteios s ON c.sorteio_id = s.id
-        LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
-        WHERE c.id = ?
-    `).bind(id).first();
+    const cedula = await env.DB.prepare('SELECT * FROM cedulas WHERE id = ?').bind(id).first();
     
     return new Response(JSON.stringify(cedula), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -311,6 +340,22 @@ async function safeJson(request) {
     } catch (error) {
         console.error('Falha ao ler JSON:', error);
         return { success: false, error: error.message || 'JSON inválido' };
+    }
+}
+
+async function getTableColumns(env, tableName) {
+    try {
+        const result = await env.DB.prepare(`SELECT name FROM pragma_table_info('${tableName}')`).all();
+        const colunas = new Set();
+        for (const row of result.results || []) {
+            if (row.name) {
+                colunas.add(row.name);
+            }
+        }
+        return colunas;
+    } catch (error) {
+        console.warn(`Não foi possível obter colunas da tabela ${tableName}:`, error);
+        return new Set();
     }
 }
 

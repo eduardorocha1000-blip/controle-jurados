@@ -67,32 +67,94 @@ async function listarSorteios(request, env, corsHeaders) {
             });
         }
 
+        const colunasSorteios = await getTableColumns(env, 'sorteios');
+        const colunasJuizes = await getTableColumns(env, 'juizes');
+
+        const anoCol = colunasSorteios.has('ano_referencia')
+            ? 'ano_referencia'
+            : (colunasSorteios.has('ano') ? 'ano' : null);
+        const dataJuriCol = colunasSorteios.has('data_juri')
+            ? 'data_juri'
+            : (colunasSorteios.has('data_sessao') ? 'data_sessao' : null);
+        const horaCol = colunasSorteios.has('hora_juri') ? 'hora_juri' : null;
+        const juizIdCol = colunasSorteios.has('juiz_responsavel_id') ? 'juiz_responsavel_id' : null;
+        const localCol = colunasSorteios.has('local_sorteio')
+            ? 'local_sorteio'
+            : (colunasSorteios.has('local') ? 'local' : null);
+        const numeroProcCol = colunasSorteios.has('numero_processo') ? 'numero_processo' : null;
+        const statusCol = colunasSorteios.has('status') ? 'status' : null;
+        const obsCol = colunasSorteios.has('observacoes') ? 'observacoes' : null;
+        const createdCol = colunasSorteios.has('created_at') ? 'created_at' : null;
+        const updatedCol = colunasSorteios.has('updated_at') ? 'updated_at' : null;
+
+        const juizNomeCol = colunasJuizes.has('nome_completo')
+            ? 'nome_completo'
+            : (colunasJuizes.has('nome') ? 'nome' : null);
+
         const url = new URL(request.url);
         const ano_referencia = url.searchParams.get('ano_referencia');
         const busca = url.searchParams.get('busca');
         
+        const selectCampos = [
+            's.id',
+            anoCol ? `s.${anoCol} AS ano_referencia` : 'NULL AS ano_referencia',
+            dataJuriCol ? `s.${dataJuriCol} AS data_juri` : 'NULL AS data_juri',
+            horaCol ? `s.${horaCol} AS hora_juri` : 'NULL AS hora_juri',
+            juizIdCol ? `s.${juizIdCol} AS juiz_responsavel_id` : 'NULL AS juiz_responsavel_id',
+            localCol ? `s.${localCol} AS local_sorteio` : 'NULL AS local_sorteio',
+            numeroProcCol ? `s.${numeroProcCol} AS numero_processo` : 'NULL AS numero_processo',
+            statusCol ? `s.${statusCol} AS status` : 'NULL AS status',
+            obsCol ? `s.${obsCol} AS observacoes` : 'NULL AS observacoes',
+            createdCol ? `s.${createdCol} AS created_at` : 'NULL AS created_at',
+            updatedCol ? `s.${updatedCol} AS updated_at` : 'NULL AS updated_at',
+            juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
+        ];
+
+        const joinClause = juizIdCol ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
+
         let query = `
             SELECT 
-                s.*,
-                j.nome_completo as juiz_nome
+                ${selectCampos.join(',\n                ')}
             FROM sorteios s
-            LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
+            ${joinClause}
             WHERE 1=1
         `;
         const params = [];
         
         if (ano_referencia) {
-            query += ' AND s.ano_referencia = ?';
-            params.push(ano_referencia);
+            if (anoCol) {
+                query += ` AND s.${anoCol} = ?`;
+                params.push(ano_referencia);
+            }
         }
         
         if (busca) {
-            query += ' AND (s.numero_processo LIKE ? OR j.nome_completo LIKE ? OR s.local_sorteio LIKE ? OR s.status LIKE ?)';
+            const clausulasBusca = [];
             const buscaParam = `%${busca}%`;
-            params.push(buscaParam, buscaParam, buscaParam, buscaParam);
+            if (numeroProcCol) {
+                clausulasBusca.push(`s.${numeroProcCol} LIKE ?`);
+                params.push(buscaParam);
+            }
+            if (juizNomeCol) {
+                clausulasBusca.push(`j.${juizNomeCol} LIKE ?`);
+                params.push(buscaParam);
+            }
+            if (localCol) {
+                clausulasBusca.push(`s.${localCol} LIKE ?`);
+                params.push(buscaParam);
+            }
+            if (statusCol) {
+                clausulasBusca.push(`s.${statusCol} LIKE ?`);
+                params.push(buscaParam);
+            }
+
+            if (clausulasBusca.length > 0) {
+                query += ` AND (${clausulasBusca.join(' OR ')})`;
+            }
         }
         
-        query += ' ORDER BY s.data_juri DESC';
+        const colunaOrdenacao = dataJuriCol ? `s.${dataJuriCol}` : 's.id';
+        query += ` ORDER BY ${colunaOrdenacao} DESC`;
         
         console.log('[sorteios] Executando query:', query, 'Params:', params);
 
@@ -143,38 +205,41 @@ async function criarSorteio(request, env, corsHeaders) {
         });
     }
     
-    // Preparar dados
+    const colunasSorteios = await getTableColumns(env, 'sorteios');
     const insertData = {
-        ano_referencia: data.ano_referencia,
-        data_juri: data.data_juri,
-        hora_juri: data.hora_juri || null,
-        juiz_responsavel_id: data.juiz_responsavel_id || null,
-        local_sorteio: data.local_sorteio ? data.local_sorteio.toUpperCase() : null,
-        numero_processo: data.numero_processo || null,
-        status: data.status || 'Agendado',
-        observacoes: data.observacoes ? data.observacoes.toUpperCase() : null
+        ano_referencia: colunasSorteios.has('ano_referencia') ? data.ano_referencia : undefined,
+        ano: (!colunasSorteios.has('ano_referencia') && colunasSorteios.has('ano')) ? data.ano_referencia : undefined,
+        data_juri: colunasSorteios.has('data_juri') ? data.data_juri : undefined,
+        data_sessao: (!colunasSorteios.has('data_juri') && colunasSorteios.has('data_sessao')) ? data.data_juri : undefined,
+        hora_juri: colunasSorteios.has('hora_juri') ? (data.hora_juri || null) : undefined,
+        juiz_responsavel_id: colunasSorteios.has('juiz_responsavel_id') ? (data.juiz_responsavel_id || null) : undefined,
+        local_sorteio: colunasSorteios.has('local_sorteio') ? (data.local_sorteio ? data.local_sorteio.toUpperCase() : null) : undefined,
+        local: (!colunasSorteios.has('local_sorteio') && colunasSorteios.has('local')) ? (data.local_sorteio ? data.local_sorteio.toUpperCase() : null) : undefined,
+        numero_processo: colunasSorteios.has('numero_processo') ? (data.numero_processo || null) : undefined,
+        status: colunasSorteios.has('status') ? (data.status || 'Agendado') : undefined,
+        observacoes: colunasSorteios.has('observacoes') ? (data.observacoes ? data.observacoes.toUpperCase() : null) : undefined
     };
     
     // Inserir
+    const campos = ['ano_referencia', 'ano', 'data_juri', 'data_sessao', 'hora_juri', 'juiz_responsavel_id', 'local_sorteio', 'local', 'numero_processo', 'status', 'observacoes'];
+    const camposPresentes = [];
+    const placeholders = [];
+    const valores = [];
+    for (const campo of campos) {
+        if (insertData[campo] !== undefined) {
+            camposPresentes.push(campo);
+            placeholders.push('?');
+            valores.push(insertData[campo]);
+        }
+    }
+
     const result = await env.DB.prepare(`
-        INSERT INTO sorteios (
-            ano_referencia, data_juri, hora_juri, juiz_responsavel_id, local_sorteio, numero_processo, status, observacoes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-        insertData.ano_referencia, insertData.data_juri, insertData.hora_juri,
-        insertData.juiz_responsavel_id, insertData.local_sorteio, insertData.numero_processo,
-        insertData.status, insertData.observacoes
-    ).run();
+        INSERT INTO sorteios (${camposPresentes.join(', ')})
+        VALUES (${placeholders.join(', ')})
+    `).bind(...valores).run();
     
     // Buscar o sorteio criado
-    const sorteio = await env.DB.prepare(`
-        SELECT 
-            s.*,
-            j.nome_completo as juiz_nome
-        FROM sorteios s
-        LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
-        WHERE s.id = ?
-    `).bind(result.meta.last_row_id).first();
+    const sorteio = await env.DB.prepare('SELECT * FROM sorteios WHERE id = ?').bind(result.meta.last_row_id).first();
     
     return new Response(JSON.stringify(sorteio), {
         status: 201,
@@ -217,32 +282,51 @@ async function atualizarSorteio(id, request, env, corsHeaders) {
     const values = [];
     
     if (data.ano_referencia !== undefined) {
-        updates.push('ano_referencia = ?');
-        values.push(data.ano_referencia);
+        if (colunasSorteios.has('ano_referencia')) {
+            updates.push('ano_referencia = ?');
+            values.push(data.ano_referencia);
+        } else if (colunasSorteios.has('ano')) {
+            updates.push('ano = ?');
+            values.push(data.ano_referencia);
+        }
     }
     if (data.data_juri !== undefined) {
-        updates.push('data_juri = ?');
-        values.push(data.data_juri);
+        if (colunasSorteios.has('data_juri')) {
+            updates.push('data_juri = ?');
+            values.push(data.data_juri);
+        } else if (colunasSorteios.has('data_sessao')) {
+            updates.push('data_sessao = ?');
+            values.push(data.data_juri);
+        }
     }
-    if (data.hora_juri !== undefined) {
+    if (data.hora_juri !== undefined && colunasSorteios.has('hora_juri')) {
         updates.push('hora_juri = ?');
         values.push(data.hora_juri || null);
     }
-    if (data.juiz_responsavel_id !== undefined) {
+    if (data.juiz_responsavel_id !== undefined && colunasSorteios.has('juiz_responsavel_id')) {
         updates.push('juiz_responsavel_id = ?');
         values.push(data.juiz_responsavel_id || null);
     }
     if (data.local_sorteio !== undefined) {
-        updates.push('local_sorteio = ?');
-        values.push(data.local_sorteio ? data.local_sorteio.toUpperCase() : null);
+        if (colunasSorteios.has('local_sorteio')) {
+            updates.push('local_sorteio = ?');
+            values.push(data.local_sorteio ? data.local_sorteio.toUpperCase() : null);
+        } else if (colunasSorteios.has('local')) {
+            updates.push('local = ?');
+            values.push(data.local_sorteio ? data.local_sorteio.toUpperCase() : null);
+        }
     }
-    if (data.numero_processo !== undefined) {
+    if (data.numero_processo !== undefined && colunasSorteios.has('numero_processo')) {
         updates.push('numero_processo = ?');
         values.push(data.numero_processo || null);
     }
-    if (data.status !== undefined) {
+    if (data.status !== undefined && colunasSorteios.has('status')) {
         updates.push('status = ?');
         values.push(data.status);
+    }
+    if (data.observacoes !== undefined && colunasSorteios.has('observacoes')) {
+        updates.push('observacoes = ?');
+        values.push(data.observacoes ? data.observacoes.toUpperCase() : null);
     }
     
     if (updates.length === 0) {
@@ -260,14 +344,7 @@ async function atualizarSorteio(id, request, env, corsHeaders) {
     `).bind(...values).run();
     
     // Buscar atualizado
-    const sorteio = await env.DB.prepare(`
-        SELECT 
-            s.*,
-            j.nome_completo as juiz_nome
-        FROM sorteios s
-        LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id
-        WHERE s.id = ?
-    `).bind(id).first();
+    const sorteio = await env.DB.prepare('SELECT * FROM sorteios WHERE id = ?').bind(id).first();
     
     return new Response(JSON.stringify(sorteio), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -308,6 +385,22 @@ async function safeJson(request) {
     } catch (error) {
         console.error('Falha ao ler JSON:', error);
         return { success: false, error: error.message || 'JSON inválido' };
+    }
+}
+
+async function getTableColumns(env, tableName) {
+    try {
+        const result = await env.DB.prepare(`SELECT name FROM pragma_table_info('${tableName}')`).all();
+        const colunas = new Set();
+        for (const row of result.results || []) {
+            if (row.name) {
+                colunas.add(row.name);
+            }
+        }
+        return colunas;
+    } catch (error) {
+        console.warn(`Não foi possível obter colunas da tabela ${tableName}:`, error);
+        return new Set();
     }
 }
 

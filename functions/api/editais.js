@@ -109,7 +109,7 @@ async function listarEditais(request, env, corsHeaders) {
             juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
         ];
 
-        const joinClause = juizIdCol ? 'LEFT JOIN juizes j ON e.juiz_id = j.id' : '';
+        const joinClause = (juizIdCol && juizNomeCol) ? 'LEFT JOIN juizes j ON e.juiz_id = j.id' : '';
 
         let query = `
             SELECT 

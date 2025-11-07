@@ -110,7 +110,7 @@ async function listarSorteios(request, env, corsHeaders) {
             juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
         ];
 
-        const joinClause = juizIdCol ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
+        const joinClause = (juizIdCol && juizNomeCol) ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
 
         let query = `
             SELECT 

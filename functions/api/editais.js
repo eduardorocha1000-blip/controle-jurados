@@ -71,38 +71,71 @@ async function listarEditais(request, env, corsHeaders) {
         const anoRefer = url.searchParams.get('ano') || url.searchParams.get('ano_referencia');
         const status = url.searchParams.get('status');
 
+        const colunasEditais = await getTableColumns(env, 'editais');
+        const colunasJuizes = await getTableColumns(env, 'juizes');
+
+        const anoCol = colunasEditais.has('ano_referencia')
+            ? 'ano_referencia'
+            : (colunasEditais.has('ano') ? 'ano' : null);
+        const tituloCol = colunasEditais.has('titulo');
+        const corpoCol = colunasEditais.has('corpo_rtf');
+        const pubPrevCol = colunasEditais.has('data_publicacao_prevista');
+        const pubRealCol = colunasEditais.has('data_publicacao_real')
+            ? 'data_publicacao_real'
+            : (colunasEditais.has('data_publicacao') ? 'data_publicacao' : null);
+        const arquivoCol = colunasEditais.has('arquivo_rtf_gerado');
+        const juizIdCol = colunasEditais.has('juiz_id');
+        const statusCol = colunasEditais.has('status');
+        const createdCol = colunasEditais.has('created_at');
+        const updatedCol = colunasEditais.has('updated_at');
+
+        const juizNomeCol = colunasJuizes.has('nome_completo')
+            ? 'nome_completo'
+            : (colunasJuizes.has('nome') ? 'nome' : null);
+
+        const selectCampos = [
+            'e.id',
+            'e.numero',
+            anoCol ? `e.${anoCol} AS ano_referencia` : 'NULL AS ano_referencia',
+            tituloCol ? 'e.titulo' : 'NULL AS titulo',
+            corpoCol ? 'e.corpo_rtf' : 'NULL AS corpo_rtf',
+            pubPrevCol ? 'e.data_publicacao_prevista' : 'NULL AS data_publicacao_prevista',
+            pubRealCol ? `e.${pubRealCol} AS data_publicacao_real` : 'NULL AS data_publicacao_real',
+            arquivoCol ? 'e.arquivo_rtf_gerado' : 'NULL AS arquivo_rtf_gerado',
+            juizIdCol ? 'e.juiz_id' : 'NULL AS juiz_id',
+            statusCol ? 'e.status' : 'NULL AS status',
+            createdCol ? 'e.created_at' : 'NULL AS created_at',
+            updatedCol ? 'e.updated_at' : 'NULL AS updated_at',
+            juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
+        ];
+
+        const joinClause = juizIdCol ? 'LEFT JOIN juizes j ON e.juiz_id = j.id' : '';
+
         let query = `
             SELECT 
-                e.id,
-                e.numero,
-                e.ano_referencia,
-                e.titulo,
-                e.corpo_rtf,
-                e.data_publicacao_prevista,
-                e.data_publicacao_real,
-                e.arquivo_rtf_gerado,
-                e.juiz_id,
-                e.status,
-                e.created_at,
-                e.updated_at,
-                j.nome_completo as juiz_nome
+                ${selectCampos.join(',\n                ')}
             FROM editais e
-            LEFT JOIN juizes j ON e.juiz_id = j.id
+            ${joinClause}
             WHERE 1=1
         `;
         const params = [];
 
         if (anoRefer) {
-            query += ' AND e.ano_referencia = ?';
-            params.push(anoRefer);
+            if (anoCol) {
+                query += ` AND e.${anoCol} = ?`;
+                params.push(anoRefer);
+            }
         }
 
         if (status) {
-            query += ' AND e.status = ?';
-            params.push(status);
+            if (statusCol) {
+                query += ' AND e.status = ?';
+                params.push(status);
+            }
         }
 
-        query += ' ORDER BY e.ano_referencia DESC, e.numero DESC';
+        const colunaOrdenacaoAno = anoCol ? `e.${anoCol}` : 'e.id';
+        query += ` ORDER BY ${colunaOrdenacaoAno} DESC, e.numero DESC`;
 
         console.log('[editais] Executando query:', query, 'Params:', params);
 
@@ -316,6 +349,22 @@ async function excluirEdital(id, env, corsHeaders) {
         status: 204,
         headers: corsHeaders
     });
+}
+
+async function getTableColumns(env, tableName) {
+    try {
+        const result = await env.DB.prepare(`SELECT name FROM pragma_table_info('${tableName}')`).all();
+        const colunas = new Set();
+        for (const row of result.results || []) {
+            if (row.name) {
+                colunas.add(row.name);
+            }
+        }
+        return colunas;
+    } catch (error) {
+        console.warn(`Não foi possível obter colunas da tabela ${tableName}:`, error);
+        return new Set();
+    }
 }
 
 async function safeJson(request) {

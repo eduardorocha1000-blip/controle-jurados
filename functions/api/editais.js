@@ -109,41 +109,63 @@ async function listarEditais(request, env, corsHeaders) {
             juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
         ];
 
-        const joinClause = (juizIdCol && juizNomeCol) ? 'LEFT JOIN juizes j ON e.juiz_id = j.id' : '';
+        const executarConsulta = async (colunaJuizNome) => {
+            const joinClause = (juizIdCol && colunaJuizNome) ? 'LEFT JOIN juizes j ON e.juiz_id = j.id' : '';
 
-        let query = `
-            SELECT 
-                ${selectCampos.join(',\n                ')}
-            FROM editais e
-            ${joinClause}
-            WHERE 1=1
-        `;
-        const params = [];
+            const camposConsulta = selectCampos.map((campo) => {
+                if (campo.includes('juiz_nome')) {
+                    if (!colunaJuizNome) {
+                        return 'NULL AS juiz_nome';
+                    }
+                    return `j.${colunaJuizNome} AS juiz_nome`;
+                }
+                return campo;
+            });
 
-        if (anoRefer) {
-            if (anoCol) {
+            let query = `
+                SELECT 
+                    ${camposConsulta.join(',\n                    ')}
+                FROM editais e
+                ${joinClause}
+                WHERE 1=1
+            `;
+            const params = [];
+
+            if (anoRefer && anoCol) {
                 query += ` AND e.${anoCol} = ?`;
                 params.push(anoRefer);
             }
-        }
 
-        if (status) {
-            if (statusCol) {
+            if (status && statusCol) {
                 query += ' AND e.status = ?';
                 params.push(status);
             }
+
+            const colunaOrdenacaoAno = anoCol ? `e.${anoCol}` : 'e.id';
+            query += ` ORDER BY ${colunaOrdenacaoAno} DESC, e.numero DESC`;
+
+            console.log('[editais] Executando query:', query, 'Params:', params);
+
+            const result = await env.DB.prepare(query).bind(...params).all();
+            return result.results || [];
+        };
+
+        try {
+            const dados = await executarConsulta(juizNomeCol);
+            return new Response(JSON.stringify(dados), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        } catch (queryError) {
+            const mensagem = String(queryError.message || queryError);
+            if (juizNomeCol === 'nome_completo' && colunasJuizes.has('nome') && mensagem.includes('j.nome_completo')) {
+                console.warn('[editais] Coluna nome_completo ausente, refazendo consulta usando j.nome');
+                const dados = await executarConsulta('nome');
+                return new Response(JSON.stringify(dados), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                });
+            }
+            throw queryError;
         }
-
-        const colunaOrdenacaoAno = anoCol ? `e.${anoCol}` : 'e.id';
-        query += ` ORDER BY ${colunaOrdenacaoAno} DESC, e.numero DESC`;
-
-        console.log('[editais] Executando query:', query, 'Params:', params);
-
-        const result = await env.DB.prepare(query).bind(...params).all();
-
-        return new Response(JSON.stringify(result.results || []), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
     } catch (error) {
         console.error('Erro ao listar editais:', error);
         return new Response(JSON.stringify({

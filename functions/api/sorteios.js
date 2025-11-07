@@ -110,59 +110,83 @@ async function listarSorteios(request, env, corsHeaders) {
             juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
         ];
 
-        const joinClause = (juizIdCol && juizNomeCol) ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
+        const executarConsulta = async (colunaJuizNome) => {
+            const joinClause = (juizIdCol && colunaJuizNome) ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
 
-        let query = `
-            SELECT 
-                ${selectCampos.join(',\n                ')}
-            FROM sorteios s
-            ${joinClause}
-            WHERE 1=1
-        `;
-        const params = [];
-        
-        if (ano_referencia) {
-            if (anoCol) {
+            const camposConsulta = selectCampos.map((campo) => {
+                if (campo.includes('juiz_nome')) {
+                    if (!colunaJuizNome) {
+                        return 'NULL AS juiz_nome';
+                    }
+                    return `j.${colunaJuizNome} AS juiz_nome`;
+                }
+                return campo;
+            });
+
+            let query = `
+                SELECT 
+                    ${camposConsulta.join(',\n                    ')}
+                FROM sorteios s
+                ${joinClause}
+                WHERE 1=1
+            `;
+            const params = [];
+            
+            if (ano_referencia && anoCol) {
                 query += ` AND s.${anoCol} = ?`;
                 params.push(ano_referencia);
             }
-        }
-        
-        if (busca) {
-            const clausulasBusca = [];
-            const buscaParam = `%${busca}%`;
-            if (numeroProcCol) {
-                clausulasBusca.push(`s.${numeroProcCol} LIKE ?`);
-                params.push(buscaParam);
-            }
-            if (juizNomeCol) {
-                clausulasBusca.push(`j.${juizNomeCol} LIKE ?`);
-                params.push(buscaParam);
-            }
-            if (localCol) {
-                clausulasBusca.push(`s.${localCol} LIKE ?`);
-                params.push(buscaParam);
-            }
-            if (statusCol) {
-                clausulasBusca.push(`s.${statusCol} LIKE ?`);
-                params.push(buscaParam);
-            }
+            
+            if (busca) {
+                const clausulasBusca = [];
+                const buscaParam = `%${busca}%`;
+                if (numeroProcCol) {
+                    clausulasBusca.push(`s.${numeroProcCol} LIKE ?`);
+                    params.push(buscaParam);
+                }
+                if (colunaJuizNome) {
+                    clausulasBusca.push(`j.${colunaJuizNome} LIKE ?`);
+                    params.push(buscaParam);
+                }
+                if (localCol) {
+                    clausulasBusca.push(`s.${localCol} LIKE ?`);
+                    params.push(buscaParam);
+                }
+                if (statusCol) {
+                    clausulasBusca.push(`s.${statusCol} LIKE ?`);
+                    params.push(buscaParam);
+                }
 
-            if (clausulasBusca.length > 0) {
-                query += ` AND (${clausulasBusca.join(' OR ')})`;
+                if (clausulasBusca.length > 0) {
+                    query += ` AND (${clausulasBusca.join(' OR ')})`;
+                }
             }
-        }
-        
-        const colunaOrdenacao = dataJuriCol ? `s.${dataJuriCol}` : 's.id';
-        query += ` ORDER BY ${colunaOrdenacao} DESC`;
-        
-        console.log('[sorteios] Executando query:', query, 'Params:', params);
+            
+            const colunaOrdenacao = dataJuriCol ? `s.${dataJuriCol}` : 's.id';
+            query += ` ORDER BY ${colunaOrdenacao} DESC`;
+            
+            console.log('[sorteios] Executando query:', query, 'Params:', params);
 
-        const result = await env.DB.prepare(query).bind(...params).all();
-        
-        return new Response(JSON.stringify(result.results || []), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+            const result = await env.DB.prepare(query).bind(...params).all();
+            return result.results || [];
+        };
+
+        try {
+            const dados = await executarConsulta(juizNomeCol);
+            return new Response(JSON.stringify(dados), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        } catch (queryError) {
+            const mensagem = String(queryError.message || queryError);
+            if (juizNomeCol === 'nome_completo' && colunasJuizes.has('nome') && mensagem.includes('j.nome_completo')) {
+                console.warn('[sorteios] Coluna nome_completo ausente, refazendo consulta usando j.nome');
+                const dados = await executarConsulta('nome');
+                return new Response(JSON.stringify(dados), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                });
+            }
+            throw queryError;
+        }
     } catch (error) {
         console.error('Erro ao listar sorteios:', error);
         return new Response(JSON.stringify({

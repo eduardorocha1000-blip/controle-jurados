@@ -116,43 +116,65 @@ async function listarCedulas(request, env, corsHeaders) {
             juizNomeCol ? `j.${juizNomeCol} AS juiz_nome` : 'NULL AS juiz_nome'
         ];
 
-        const joinSorteios = sorteioIdCol ? 'LEFT JOIN sorteios s ON c.sorteio_id = s.id' : '';
-        const joinJuizes = (sorteioJuizIdCol && juizNomeCol) ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
+        const executarConsulta = async (colunaJuizNome) => {
+            const joinSorteios = sorteioIdCol ? 'LEFT JOIN sorteios s ON c.sorteio_id = s.id' : '';
+            const joinJuizes = (sorteioJuizIdCol && colunaJuizNome) ? 'LEFT JOIN juizes j ON s.juiz_responsavel_id = j.id' : '';
 
-        let query = `
-            SELECT 
-                ${camposSelect.join(',\n                ')}
-            FROM cedulas c
-            ${joinSorteios}
-            ${joinJuizes}
-            WHERE 1=1
-        `;
-        const params = [];
-        
-        if (sorteio_id) {
-            if (sorteioIdCol) {
+            const camposConsulta = camposSelect.map((campo) => {
+                if (campo.includes('juiz_nome')) {
+                    if (!colunaJuizNome) {
+                        return 'NULL AS juiz_nome';
+                    }
+                    return `j.${colunaJuizNome} AS juiz_nome`;
+                }
+                return campo;
+            });
+
+            let query = `
+                SELECT 
+                    ${camposConsulta.join(',\n                    ')}
+                FROM cedulas c
+                ${joinSorteios}
+                ${joinJuizes}
+                WHERE 1=1
+            `;
+            const params = [];
+            
+            if (sorteio_id && sorteioIdCol) {
                 query += ` AND c.${sorteioIdCol} = ?`;
                 params.push(sorteio_id);
             }
-        }
-        
-        if (status) {
-            if (statusCol) {
+            
+            if (status && statusCol) {
                 query += ` AND COALESCE(c.${statusCol}, 'Gerada') = ?`;
                 params.push(status);
             }
-        }
-        
-        const colunaOrdenacao = createdCol ? `c.${createdCol}` : 'c.id';
-        query += ` ORDER BY ${colunaOrdenacao} DESC`;
-        
-        console.log('[cedulas] Executando query:', query, 'Params:', params);
+            
+            const colunaOrdenacao = createdCol ? `c.${createdCol}` : 'c.id';
+            query += ` ORDER BY ${colunaOrdenacao} DESC`;
+            
+            console.log('[cedulas] Executando query:', query, 'Params:', params);
 
-        const result = await env.DB.prepare(query).bind(...params).all();
-        
-        return new Response(JSON.stringify(result.results || []), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+            const result = await env.DB.prepare(query).bind(...params).all();
+            return result.results || [];
+        };
+
+        try {
+            const dados = await executarConsulta(juizNomeCol);
+            return new Response(JSON.stringify(dados), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        } catch (queryError) {
+            const mensagem = String(queryError.message || queryError);
+            if (juizNomeCol === 'nome_completo' && colunasJuizes.has('nome') && mensagem.includes('j.nome_completo')) {
+                console.warn('[cedulas] Coluna nome_completo ausente, refazendo consulta usando j.nome');
+                const dados = await executarConsulta('nome');
+                return new Response(JSON.stringify(dados), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                });
+            }
+            throw queryError;
+        }
     } catch (error) {
         console.error('Erro ao listar cédulas:', error);
         return new Response(JSON.stringify({

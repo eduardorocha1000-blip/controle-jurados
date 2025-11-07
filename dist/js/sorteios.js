@@ -45,14 +45,23 @@ async function carregarSorteios() {
                 window.location.href = '/index.html';
                 return;
             }
-            throw new Error('Erro ao carregar sorteios');
+
+            let errorMessage = 'Erro ao carregar sorteios';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.details || errorMessage;
+            } catch (e) {
+                errorMessage = `Erro ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         const sorteios = await response.json();
         exibirSorteios(sorteios);
     } catch (error) {
         console.error('Erro:', error);
-        mostrarErro('Erro ao carregar sorteios. Tente novamente.');
+        console.error('Detalhes:', error.message);
+        mostrarErro(error.message || 'Erro ao carregar sorteios. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }

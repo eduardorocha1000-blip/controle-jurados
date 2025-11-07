@@ -46,14 +46,23 @@ async function carregarCedulas() {
                 window.location.href = '/index.html';
                 return;
             }
-            throw new Error('Erro ao carregar cédulas');
+
+            let errorMessage = 'Erro ao carregar cédulas';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.details || errorMessage;
+            } catch (e) {
+                errorMessage = `Erro ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         const cedulas = await response.json();
         exibirCedulas(cedulas);
     } catch (error) {
         console.error('Erro:', error);
-        mostrarErro('Erro ao carregar cédulas. Tente novamente.');
+        console.error('Detalhes:', error.message);
+        mostrarErro(error.message || 'Erro ao carregar cédulas. Tente novamente.');
     } finally {
         mostrarLoading(false);
     }
